@@ -1,5 +1,6 @@
 """
-Reimplementation and analysis of new_GA.py made by Sofia Farina.
+Implementation of a generic Genetic Algorithm optimizer
+for optimal laplacian mass tuning.
 """
 
 # Library Imports
@@ -35,18 +36,7 @@ precision = 1e-4
 elite_size = int(population_size * mutation_rate)
 population_half = int(population_size * 0.5)
 
-# Functions
-
-def set_weights(G, w):
-    '''
-    G is a network, w is an array with the desired weights for the edges of G.
-    '''
-    edges = G.edges()
-    if(len(edges) != len(w)):
-        raise ValueError("array w is not same lenght of G edges list.")
-    for i in range(len(edges)):
-        G.add_edge(edges[i][0], edges[i][1], weight=w[i])
-
+# Network Utilities
 
 def remove_random_nodes(G, N):
     '''
@@ -64,35 +54,47 @@ def remove_random_edges(G, N):
     G.remove_edges_from(to_remove)
 
 
-def kabsch(pt_true, pt_guessed):
+def create_lattice(lenght, width, rem_nodes=0, rem_edges=0):
     '''
-    Wrapping of Kabsch algorithm, returns pt_guessed rotated into pt_true
-    with Kabsch algorithm.
+    Creates a standard flat network lattice placed in a 3D space.
+    Last two parameters indicates how many randomly removed nodes and edges
+    we want.
+    Returns a tupla (network, nodes coordinates).
     '''
-    # Pre-processing
-    pt_true -= pt_true.mean(axis=0)
-    pt_guessed -= pt_guessed.mean(axis=0)
+    G = nx.grid_graph(dim=[lenght, width])
+    remove_random_nodes(G, rem_nodes)
+    remove_random_edges(G, rem_edges)
+    # Little trick for having easy coordinates
+    coordinates = pd.DataFrame(np.asarray(G.nodes, dtype=float),
+                               columns=["x", "y"])
+    # Translating and scaling
+    coordinates -= coordinates.mean(axis=0)
+    coordinates /= np.linalg.norm(coordinates, axis=0)
+    # "z" coordinate is zero
+    coordinates["z"] = 0.
+    return (G, coordinates)
 
-    pt_true /= np.linalg.norm(pt_true, axis=0)
-    pt_guessed /= np.linalg.norm(pt_guessed, axis=0)
 
-    # Kabsch
-    return rmsd.kabsch_rotate(pt_guessed, pt_true)
-
-
-def get_coordinates(laplacian):
+def get_spectral_coordinates(laplacian, mod_matrix=None):
     '''
-    Given a laplacian matrix, returns eigenvectors as (x,y) coordinates.
-    In this scenario (2D) we are interest in the second and third values
-    (since the first one is by default zero).
+    Given a network's laplacian, returns second, third and fourth components of
+    every eigenvector as (x,y,z) axis, based on the spectral representation.
+    If a modulation matrix is given, a dot operation is performed.
     '''
+    if mod_matrix != None:
+        laplacian = np.dot(mod_matrix, laplacian.toarray())
+    
     _, eigenvectors = np.linalg.eig(laplacian.todense())
-    vecs = eigenvectors[:, 1:3]
-    return np.array(vecs)
+    vecs = eigenvectors[:, 1:4]
+    coords = pd.DataFrame(vecs, columns=["x", "y", "z"], dtype=float)
+
+    coords -= coords.mean(axis=0)
+    coords /= np.linalg.norm(coords, axis=0)
+    return coords
 
 # GA functions
 
-def generate_random_population(dim=N*N, n_vectors=population_size, 
+def generate_random_population(dim=N, n_vectors=population_size, 
                                low_value=0.8, high_value=1.8):
     '''
     Generates "n_vectors" vectors of "dim" length with random values
@@ -142,13 +144,13 @@ def new_generation(old_gen, elite_size=elite_size, mut_rate=mutation_rate,
     return new_gen
 
 
-def fitness(laplacian, target_coordinates):
+def fitness(individual, laplacian, target_coordinates):
     '''
-    Defines the fitness score for a given laplacian.
+    Defines the fitness score for a given individual.
     '''
-    guess = get_coordinates(laplacian)
-    refined_guess = kabsch(target_coordinates, guess)
-    return rmsd.rmsd(refined_guess, target_coordinates)
+    mod_matrix = np.diagflat(individual)
+    guess_coordinates = get_spectral_coordinates(laplacian, mod_matrix)
+    return rmsd.kabsch_rmsd(guess_coordinates, target_coordinates)
 
 
 def genetic_algorithm(target_coordinates, G,
@@ -156,16 +158,15 @@ def genetic_algorithm(target_coordinates, G,
     '''
     Standard implementation of Genetic Algorithm optimizer
     '''
-    population = generate_random_population(len(G.edges()))
+    population = generate_random_population(len(G.nodes()))
+    laplacian = nx.laplacian_matrix(G)
+    
     progression = []
-
     for i in range(max_iterations):
         print("Generation: {}/{}".format(i,max_iterations))
         score = []
         for individual in population:
-            set_weights(G, individual)
-            laplacian = nx.laplacian_matrix(G)
-            score.append(fitness(laplacian, target_coordinates))
+            score.append(fitness(individual, laplacian, target_coordinates))
         performance = list(zip(population, score))
         performance = sorted(performance, key=lambda a:a[1])
         print("Best score: {:f}".format(performance[0][1]))
@@ -175,43 +176,3 @@ def genetic_algorithm(target_coordinates, G,
         else:
             population = new_generation([a[0] for a in performance])
     return progression, performance[0][0]
-
-#%%
-"""
-What the frick happens here???
-"""
-# Creating standard Lattice
-R = nx.grid_graph(dim=[N,N])
-remove_random_nodes(R, F)
-remove_random_nodes(R, L)
-
-# Creating laplacian and computing stuff
-L = nx.laplacian_matrix(R)
-eigenvalues, eigenvectors = np.linalg.eigh(L.todense())
-eigenvalues = np.sort(eigenvalues)
-
-evec1 = eigenvectors[:, 1]
-evec2 = eigenvectors[:, 2]
-vecs = eigenvectors[:, 1:3]
-eval0 = eigenvalues[0]
-eval1 = eigenvalues[1]
-eval2 = eigenvalues[2]
-eval3 = eigenvalues[3]
-guess = np.array(vecs)
-
-#%%
-target_coordinates = np.array(R.nodes(), dtype = float)
-guess_coordinates = kabsch(target_coordinates, guess)
-
-#%%
-# GA casting
-weights = genetic_algorithm(target_coordinates, R)
-
-#%%
-set_weights(R, weights)
-new_laplacian = nx.laplacian_matrix(R)
-
-gc = kabsch(target_coordinates, get_coordinates(new_laplacian))
-
-#%%
-
