@@ -6,16 +6,9 @@ for optimal laplacian mass tuning.
 # Library Imports
 import networkx as nx
 import numpy as np
-import scipy 
 import pandas as pd
 import matplotlib.pylab as plt
-import itertools
-import random
 import rmsd
-from scipy.sparse import csgraph as csgraph
-from operator import itemgetter
-from mpl_toolkits.mplot3d import Axes3D
-from scipy import stats
 
 # Set random seed
 np.random.seed(42)
@@ -42,7 +35,7 @@ def remove_random_nodes(G, N):
     '''
     Given a network G, removes N random nodes from G
     '''
-    to_remove = random.sample(G.nodes(), N)
+    to_remove = np.random.choice(G.nodes(), N, replace=False)
     G.remove_nodes_from(to_remove)
 
 
@@ -50,7 +43,7 @@ def remove_random_edges(G, N):
     '''
     Given a network G, removes N random edges from G
     '''
-    to_remove = random.sample(G.edges(), N)
+    to_remove = np.random.choice(G.edges(), N, replace=False)
     G.remove_edges_from(to_remove)
 
 
