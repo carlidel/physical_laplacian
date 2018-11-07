@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pylab as plt
 import rmsd
+import random
 
 # Set random seed
 np.random.seed(42)
@@ -35,7 +36,7 @@ def remove_random_nodes(G, N):
     '''
     Given a network G, removes N random nodes from G
     '''
-    to_remove = np.random.choice(G.nodes(), N, replace=False)
+    to_remove = random.sample(G.nodes(), N)
     G.remove_nodes_from(to_remove)
 
 
@@ -43,7 +44,7 @@ def remove_random_edges(G, N):
     '''
     Given a network G, removes N random edges from G
     '''
-    to_remove = np.random.choice(G.edges(), N, replace=False)
+    to_remove = random.sample(G.edges(), N)
     G.remove_edges_from(to_remove)
 
 
@@ -76,9 +77,15 @@ def get_spectral_coordinates(laplacian, mod_matrix=None):
     '''
     if mod_matrix != None:
         laplacian = np.dot(mod_matrix, laplacian.toarray())
-    
-    _, eigenvectors = np.linalg.eig(laplacian.todense())
-    vecs = eigenvectors[:, 1:4]
+        val, eigenvectors = np.linalg.eig(laplacian)
+    else:
+        val, eigenvectors = np.linalg.eig(laplacian.todense())
+    merged = (sorted(list(zip(val, eigenvectors.transpose().tolist())),
+                     key=lambda k:k[0]))
+    vec1 = np.asarray(merged[1][1])
+    vec2 = np.asarray(merged[2][1])
+    vec3 = np.asarray(merged[3][1])
+    vecs = np.column_stack((vec1, vec2, vec3))
     coords = pd.DataFrame(vecs, columns=["x", "y", "z"], dtype=float)
 
     coords -= coords.mean(axis=0)
@@ -87,7 +94,7 @@ def get_spectral_coordinates(laplacian, mod_matrix=None):
 
 # GA functions
 
-def generate_random_population(dim=N, n_vectors=population_size, 
+def generate_random_population(dim, n_vectors, 
                                low_value=0.8, high_value=1.8):
     '''
     Generates "n_vectors" vectors of "dim" length with random values
@@ -107,7 +114,7 @@ def crossover(vec_a, vec_b):
     return np.concatenate((vec_a[:cross_point], vec_b[cross_point:]))
 
 
-def mutate(vec, iterations=mutation_iterations, mu=1.2, sigma=0.1):
+def mutate(vec, iterations, mu=1.2, sigma=0.1):
     '''
     Executes vector mutation for given iterations, returns mutated vector
     '''
@@ -116,8 +123,8 @@ def mutate(vec, iterations=mutation_iterations, mu=1.2, sigma=0.1):
     return vec
 
 
-def new_generation(old_gen, elite_size=elite_size, mut_rate=mutation_rate,
-                   full=population_size, half=population_half):
+def new_generation(old_gen, elite_size, mut_rate, mut_iter,
+                   full_size, half_size):
     '''
     Generates a new generation with the given selection parameters.
     old_gen must be already sorted per fitness score (from max to min).
@@ -125,14 +132,15 @@ def new_generation(old_gen, elite_size=elite_size, mut_rate=mutation_rate,
     '''
     # Elite and Crossovers
     vec_elite = old_gen[:elite_size]
-    vec_crossover = [crossover(old_gen[np.random.randint(0, half)],
-                               old_gen[np.random.randint(half, full)])
-                    for i in range(elite_size, full)]
+    vec_crossover = [crossover(old_gen[np.random.randint(0, half_size)],
+                               old_gen[np.random.randint(half_size,
+                                                         full_size)])
+                    for i in range(elite_size, full_size)]
     new_gen = np.concatenate((vec_elite, vec_crossover))
     # Mutation
     for newborn in new_gen:
         if np.random.rand() < mutation_rate:
-            newborn = mutate(newborn)
+            newborn = mutate(newborn, mut_iter)
     
     return new_gen
 
@@ -146,12 +154,14 @@ def fitness(individual, laplacian, target_coordinates):
     return rmsd.kabsch_rmsd(guess_coordinates, target_coordinates)
 
 
-def genetic_algorithm(target_coordinates, G,
-                      precision=precision, max_iterations=max_iterations):
+def genetic_algorithm(G_tupla, precision, max_iterations,
+                      pop_size, half_pop_size, elite_size, mut_rate, mut_iter):
     '''
     Standard implementation of Genetic Algorithm optimizer
     '''
-    population = generate_random_population(len(G.nodes()))
+    G = G_tupla[0]
+    target_coordinates = G_tupla[1]
+    population = generate_random_population(len(G.nodes()), pop_size)
     laplacian = nx.laplacian_matrix(G)
     
     progression = []
@@ -167,5 +177,68 @@ def genetic_algorithm(target_coordinates, G,
         if(progression[0][1] <= precision):
             break
         else:
-            population = new_generation([a[0] for a in performance])
+            population = new_generation([a[0] for a in performance],
+                                        elite_size, mut_rate, mut_iter,
+                                        pop_size, half_pop_size)
     return progression, performance[0][0]
+
+#%%
+# Drawing functions
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
+
+def plot_3d_scatter(dataset, title="", savepath="", showfig=True):
+    '''
+    Plot a single dataset of 3D points.
+    '''
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(dataset["x"], dataset["y"], dataset["z"])
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    if title != "":
+        ax.set_title(title)
+    if showfig:
+        ax.view_init(30, 0)
+        plt.show()
+    if savepath != "":
+        ax.view_init(30, 0)
+        plt.savefig(savepath, dpi=300)
+
+
+def plot_multiple_3d_scatter(datasets, labels, title="", savepath="",
+                             showfig=True):
+    '''
+    Plot more datasets of 3D points in a single plot (max 5).
+    '''
+    if len(datasets) > 5:
+        raise ValueError("too many datasets")
+    if len(datasets) != len(labels):
+        raise ValueError("datasets and labels must have same lenght")
+    colors = ['C0', 'C1', 'C2', 'C3', 'C4']
+    markers = [".", "x", "*", "p", "v"]
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    for i in range(len(datasets)):
+        ax.scatter(datasets[i]["x"], datasets[i]["y"], datasets[i]["z"],
+                   color=colors[i], marker=markers[i], label=labels[i])
+    ax.legend()
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    if title != "":
+        ax.set_title(title)
+    if showfig:
+        ax.view_init(30, 0)
+        plt.show()
+    if savepath != "":
+        ax.view_init(30, 0)
+        plt.savefig(savepath, dpi=300)
+
+#%%
+# Creating Lattice
+lattice = create_lattice(N, N, F, L)
+#plot_3d_scatter(lattice[1])
+plot_3d_scatter(get_spectral_coordinates(nx.laplacian_matrix(lattice[0])))
