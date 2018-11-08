@@ -15,7 +15,7 @@ import random
 np.random.seed(42)
 
 # Lattice Parameters
-N = 20    # Lattice dimension
+N = 5    # Lattice dimension
 F = 0     # Number of removed edges
 L = 0     # Number of removed links
 
@@ -24,7 +24,7 @@ population_size = 100
 elite_rate = 0.10
 mutation_rate = 0.5
 mutation_iterations = 150  # How many times do we iterate a mutation?
-max_iterations = 200
+max_iterations = 20
 precision = 1e-4
 
 elite_size = int(population_size * mutation_rate)
@@ -48,6 +48,20 @@ def remove_random_edges(G, N):
     G.remove_edges_from(to_remove)
 
 
+def create_path_graph(lenght):
+    '''
+    Creates a network line placed in a 3D space.
+    Returns a tupla (network, nodes coordinates).
+    '''
+    G = nx.grid_graph(dim=[lenght])
+    coordinates = pd.DataFrame(np.asarray(G.nodes, dtype=float), columns=["x"])
+    coordinates -= coordinates.mean(axis=0)
+    coordinates /= np.linalg.norm(coordinates, axis=0)
+    coordinates["y"] = 0.
+    coordinates["z"] = 0.
+    return (G, coordinates)
+
+
 def create_lattice(lenght, width, rem_nodes=0, rem_edges=0):
     '''
     Creates a standard flat network lattice placed in a 3D space.
@@ -69,13 +83,26 @@ def create_lattice(lenght, width, rem_nodes=0, rem_edges=0):
     return (G, coordinates)
 
 
-def get_spectral_coordinates(laplacian, mod_matrix=None):
+def create_cube(lenght, width, depth, rem_nodes=0, rem_edges=0):
+    G = nx.grid_graph(dim=[lenght, width, depth])
+    remove_random_nodes(G, rem_nodes)
+    remove_random_edges(G, rem_edges)
+    coordinates = pd.DataFrame(np.asarray(G.nodes, dtype=float),
+                               columns=["x", "y", "z"])
+    coordinates -= coordinates.mean(axis=0)
+    coordinates /= np.linalg.norm(coordinates, axis=0)
+    return (G, coordinates)
+
+
+def get_spectral_coordinates(laplacian, mod_matrix=np.zeros(1)):
     '''
-    Given a network's laplacian, returns second, third and fourth components of
-    every eigenvector as (x,y,z) axis, based on the spectral representation.
-    If a modulation matrix is given, a dot operation is performed.
+    Given a network's laplacian, returns eigenvectors associated to the second,
+    third and fourth lowest eigenvalues as (x,y,z) axis, based on the spectral
+    representation.
+    If a modulation matrix is given, a dot operation is performed on the
+    laplacian.
     '''
-    if mod_matrix != None:
+    if mod_matrix.any():
         laplacian = np.dot(mod_matrix, laplacian.toarray())
         val, eigenvectors = np.linalg.eig(laplacian)
     else:
@@ -95,7 +122,7 @@ def get_spectral_coordinates(laplacian, mod_matrix=None):
 # GA functions
 
 def generate_random_population(dim, n_vectors, 
-                               low_value=0.8, high_value=1.8):
+                               low_value=0.1, high_value=5.0):
     '''
     Generates "n_vectors" vectors of "dim" length with random values
     uniformally distributed in [low_value, high_value]
@@ -138,7 +165,7 @@ def new_generation(old_gen, elite_size, mut_rate, mut_iter,
                     for i in range(elite_size, full_size)]
     new_gen = np.concatenate((vec_elite, vec_crossover))
     # Mutation
-    for newborn in new_gen:
+    for newborn in new_gen[1:]:
         if np.random.rand() < mutation_rate:
             newborn = mutate(newborn, mut_iter)
     
@@ -151,7 +178,8 @@ def fitness(individual, laplacian, target_coordinates):
     '''
     mod_matrix = np.diagflat(individual)
     guess_coordinates = get_spectral_coordinates(laplacian, mod_matrix)
-    return rmsd.kabsch_rmsd(guess_coordinates, target_coordinates)
+    return rmsd.kabsch_rmsd(guess_coordinates.values,
+                            target_coordinates.values)
 
 
 def genetic_algorithm(G_tupla, precision, max_iterations,
@@ -172,6 +200,7 @@ def genetic_algorithm(G_tupla, precision, max_iterations,
             score.append(fitness(individual, laplacian, target_coordinates))
         performance = list(zip(population, score))
         performance = sorted(performance, key=lambda a:a[1])
+        #print([perf[1] for perf in performance])
         print("Best score: {:f}".format(performance[0][1]))
         progression.append(performance[0])
         if(progression[0][1] <= precision):
@@ -238,7 +267,18 @@ def plot_multiple_3d_scatter(datasets, labels, title="", savepath="",
         plt.savefig(savepath, dpi=300)
 
 #%%
-# Creating Lattice
-lattice = create_lattice(N, N, F, L)
-#plot_3d_scatter(lattice[1])
-plot_3d_scatter(get_spectral_coordinates(nx.laplacian_matrix(lattice[0])))
+# Creating cube
+cube = create_cube(N, N, N, F, L)
+plot_3d_scatter(cube[1])
+plot_3d_scatter(get_spectral_coordinates(nx.laplacian_matrix(cube[0])))
+_, individual = genetic_algorithm(cube, precision, max_iterations,
+                                  population_size, population_half, elite_size, mutation_rate, mutation_iterations)
+mod_matrix = np.diagflat(individual)
+guess_coordinates = get_spectral_coordinates(
+    nx.laplacian_matrix(cube[0]), mod_matrix)
+plot_multiple_3d_scatter([cube[1],
+                          pd.DataFrame(rmsd.kabsch_rotate(guess_coordinates,
+                                                          cube[1]),
+                                       columns=["x", "y", "z"],
+                                       dtype=float)],
+                         ["original", "genetic"])
