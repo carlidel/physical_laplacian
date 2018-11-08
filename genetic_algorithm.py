@@ -15,7 +15,7 @@ import random
 np.random.seed(42)
 
 # Lattice Parameters
-N = 5    # Lattice dimension
+N = 20    # Lattice dimension
 F = 0     # Number of removed edges
 L = 0     # Number of removed links
 
@@ -94,7 +94,7 @@ def create_cube(lenght, width, depth, rem_nodes=0, rem_edges=0):
     return (G, coordinates)
 
 
-def get_spectral_coordinates(laplacian, mod_matrix=np.zeros(1)):
+def get_spectral_coordinates(laplacian, mod_matrix=np.zeros(1), dim=3):
     '''
     Given a network's laplacian, returns eigenvectors associated to the second,
     third and fourth lowest eigenvalues as (x,y,z) axis, based on the spectral
@@ -110,13 +110,19 @@ def get_spectral_coordinates(laplacian, mod_matrix=np.zeros(1)):
     merged = (sorted(list(zip(val, eigenvectors.transpose().tolist())),
                      key=lambda k:k[0]))
     vec1 = np.asarray(merged[1][1])
-    vec2 = np.asarray(merged[2][1])
-    vec3 = np.asarray(merged[3][1])
+    if dim >= 2:
+        vec2 = np.asarray(merged[2][1])
+        if dim == 3:
+            vec3 = np.asarray(merged[3][1])
+        else:
+            vec3 = np.zeros(len(merged[3][1]))
+    else:
+        vec2 = np.zeros(len(merged[2][1]))
     vecs = np.column_stack((vec1, vec2, vec3))
+    vecs -= vecs.mean(axis=0)
+    vecs[:,:dim] /= np.linalg.norm(vecs[:,:dim], axis=0)
     coords = pd.DataFrame(vecs, columns=["x", "y", "z"], dtype=float)
-
-    coords -= coords.mean(axis=0)
-    coords /= np.linalg.norm(coords, axis=0)
+    print(coords)
     return coords
 
 # GA functions
@@ -268,9 +274,10 @@ def plot_multiple_3d_scatter(datasets, labels, title="", savepath="",
 
 #%%
 # Creating cube
-cube = create_cube(N, N, N, F, L)
-plot_3d_scatter(cube[1])
-plot_3d_scatter(get_spectral_coordinates(nx.laplacian_matrix(cube[0])))
+cube = create_lattice(N, N, F, L)
+#plot_3d_scatter(cube[1])
+plot_3d_scatter(get_spectral_coordinates(nx.laplacian_matrix(cube[0]), dim=3))
+'''
 _, individual = genetic_algorithm(cube, precision, max_iterations,
                                   population_size, population_half, elite_size, mutation_rate, mutation_iterations)
 mod_matrix = np.diagflat(individual)
@@ -282,3 +289,4 @@ plot_multiple_3d_scatter([cube[1],
                                        columns=["x", "y", "z"],
                                        dtype=float)],
                          ["original", "genetic"])
+'''
