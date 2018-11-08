@@ -20,11 +20,11 @@ F = 0     # Number of removed edges
 L = 0     # Number of removed links
 
 # GA parameters
-population_size = 100
+population_size = 200
 elite_rate = 0.10
 mutation_rate = 0.5
 mutation_iterations = 150  # How many times do we iterate a mutation?
-max_iterations = 20
+max_iterations = 100
 precision = 1e-4
 
 elite_size = int(population_size * mutation_rate)
@@ -103,6 +103,7 @@ def get_spectral_coordinates(laplacian, mod_matrix=np.zeros(1), dim=3):
     laplacian.
     '''
     if mod_matrix.any():
+        print("Mod recived")
         laplacian = np.dot(mod_matrix, laplacian.toarray())
         val, eigenvectors = np.linalg.eig(laplacian)
     else:
@@ -129,7 +130,7 @@ def get_spectral_coordinates(laplacian, mod_matrix=np.zeros(1), dim=3):
 # GA functions
 
 def generate_random_population(dim, n_vectors, 
-                               low_value=0.1, high_value=5.0):
+                               low_value=0.1, high_value=10.0):
     '''
     Generates "n_vectors" vectors of "dim" length with random values
     uniformally distributed in [low_value, high_value]
@@ -179,17 +180,17 @@ def new_generation(old_gen, elite_size, mut_rate, mut_iter,
     return new_gen
 
 
-def fitness(individual, laplacian, target_coordinates):
+def fitness(individual, laplacian, target_coordinates, dim):
     '''
     Defines the fitness score for a given individual.
     '''
     mod_matrix = np.diagflat(individual)
-    guess_coordinates = get_spectral_coordinates(laplacian, mod_matrix)
+    guess_coordinates = get_spectral_coordinates(laplacian, mod_matrix, dim)
     return rmsd.kabsch_rmsd(guess_coordinates.values,
                             target_coordinates.values)
 
 
-def genetic_algorithm(G_tupla, precision, max_iterations,
+def genetic_algorithm(G_tupla, dim, precision, max_iterations,
                       pop_size, half_pop_size, elite_size, mut_rate, mut_iter):
     '''
     Standard implementation of Genetic Algorithm optimizer
@@ -204,7 +205,8 @@ def genetic_algorithm(G_tupla, precision, max_iterations,
         print("Generation: {}/{}".format(i,max_iterations))
         score = []
         for individual in population:
-            score.append(fitness(individual, laplacian, target_coordinates))
+            score.append(fitness(individual, laplacian,
+                                 target_coordinates, dim))
         performance = list(zip(population, score))
         performance = sorted(performance, key=lambda a:a[1])
         #print([perf[1] for perf in performance])
@@ -258,7 +260,7 @@ def plot_multiple_3d_scatter(datasets, labels, title="", savepath="",
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     for i in range(len(datasets)):
-        ax.scatter(datasets[i]["x"], datasets[i]["y"], datasets[i]["z"],
+        ax.scatter(datasets[i]["y"], datasets[i]["x"], datasets[i]["z"],
                    color=colors[i], marker=markers[i], label=labels[i])
     ax.legend()
     ax.set_xlabel("X")
@@ -276,21 +278,40 @@ def plot_multiple_3d_scatter(datasets, labels, title="", savepath="",
 #%%
 # Creating network
 network = create_path_graph(N)
-plot_3d_scatter(network[1])
-plot_3d_scatter(get_spectral_coordinates(nx.laplacian_matrix(network[0]),
-                                         dim=1))
-plot_multiple_3d_scatter([network[1],
-                          pd.DataFrame(rmsd.kabsch_rotate(get_spectral_coordinates(nx.laplacian_matrix(network[0]), dim=1), network[1]), columns=["x", "y", "z"], dtype=float)], ["original", "spectral"])
+#plot_3d_scatter(network[1])
+#plot_3d_scatter(get_spectral_coordinates(nx.laplacian_matrix(network[0]), dim=1))
+
+def gaussian(x, mu, sig):
+    return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+
+masses = np.array([gaussian(x, N/2, N/10)*100 for x in range(N)])
+
+while True:
+    mod_matrix = np.diagflat(masses)
+    print(masses)
+    guess_coordinates = get_spectral_coordinates(
+                            nx.laplacian_matrix(network[0]),
+                            mod_matrix, 1)
+    plot_multiple_3d_scatter([network[1],
+                              pd.DataFrame(rmsd.kabsch_rotate(guess_coordinates,
+                                                              network[1]),
+                                           columns=["x", "y", "z"],
+                                           dtype=float)],
+                            ["original", "spectral"])
+    masses = np.roll(masses, 1)
+
 '''
-_, individual = genetic_algorithm(cube, precision, max_iterations,
+_, individual = genetic_algorithm(network, 1, precision, max_iterations,
                                   population_size, population_half, elite_size, mutation_rate, mutation_iterations)
 mod_matrix = np.diagflat(individual)
-guess_coordinates = get_spectral_coordinates(
-    nx.laplacian_matrix(cube[0]), mod_matrix)
-plot_multiple_3d_scatter([cube[1],
+guess_coordinates = get_spectral_coordinates(nx.laplacian_matrix(network[0]),
+                                             mod_matrix, 1)
+plot_multiple_3d_scatter([network[1],
+                          pd.DataFrame(rmsd.kabsch_rotate(get_spectral_coordinates(nx.laplacian_matrix(
+                              network[0]), dim=1), network[1]), columns=["x", "y", "z"], dtype=float),
                           pd.DataFrame(rmsd.kabsch_rotate(guess_coordinates,
-                                                          cube[1]),
+                                                          network[1]),
                                        columns=["x", "y", "z"],
                                        dtype=float)],
-                         ["original", "genetic"])
+                         ["original", "spectral", "genetic"])
 '''
