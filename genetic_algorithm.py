@@ -118,11 +118,12 @@ def get_spectral_coordinates(laplacian, mod_matrix=np.zeros(1), dim=3):
             vec3 = np.zeros(len(merged[3][1]))
     else:
         vec2 = np.zeros(len(merged[2][1]))
+        vec3 = np.zeros(len(merged[3][1]))
     vecs = np.column_stack((vec1, vec2, vec3))
     vecs -= vecs.mean(axis=0)
     vecs[:,:dim] /= np.linalg.norm(vecs[:,:dim], axis=0)
     coords = pd.DataFrame(vecs, columns=["x", "y", "z"], dtype=float)
-    print(coords)
+    #print(coords)
     return coords
 
 # GA functions
@@ -273,10 +274,13 @@ def plot_multiple_3d_scatter(datasets, labels, title="", savepath="",
         plt.savefig(savepath, dpi=300)
 
 #%%
-# Creating cube
-cube = create_lattice(N, N, F, L)
-#plot_3d_scatter(cube[1])
-plot_3d_scatter(get_spectral_coordinates(nx.laplacian_matrix(cube[0]), dim=3))
+# Creating network
+network = create_path_graph(N)
+plot_3d_scatter(network[1])
+plot_3d_scatter(get_spectral_coordinates(nx.laplacian_matrix(network[0]),
+                                         dim=1))
+plot_multiple_3d_scatter([network[1],
+                          pd.DataFrame(rmsd.kabsch_rotate(get_spectral_coordinates(nx.laplacian_matrix(network[0]), dim=1), network[1]), columns=["x", "y", "z"], dtype=float)], ["original", "spectral"])
 '''
 _, individual = genetic_algorithm(cube, precision, max_iterations,
                                   population_size, population_half, elite_size, mutation_rate, mutation_iterations)
