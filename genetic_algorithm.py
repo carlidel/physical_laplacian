@@ -4,25 +4,13 @@ import pandas as pd
 import matplotlib.pylab as plt
 import rmsd
 import random
+from parameters import *
 from network_tools import *
 
 """
 Implementation of a generic Genetic Algorithm optimizer
 for optimal laplacian mass tuning.
 """
-
-# Set random seed
-np.random.seed(42)
-
-# GA parameters
-population_size = 300
-elite_rate = 0.10
-random_rate = 0.10
-mutation_rate = 0.5
-mutation_part = 0.3  # which percentage of genes mutate?
-max_iterations = 100
-precision = 1e-3
-value_resolution = 10000
 
 elite_size = int(population_size * elite_rate)
 random_size = int(population_size * random_rate)
@@ -93,31 +81,77 @@ def new_generation(old_gen,
     return new_gen
 
 
-def fitness(individual, network, target_coordinates, value_resolution, dim):
+def fitness(individual,
+            network,
+            target_coordinates,
+            value_resolution,
+            max_mass,
+            min_mass,
+            dim):
     '''
     Defines the fitness score for a given individual.
     '''
-    masses = individual / value_resolution
+    masses = (max_mass - min_mass) * (individual / value_resolution) + min_mass
     mod_matrix = create_mod_matrix(masses)
-    guess_coordinates = get_spectral_coordinates(
-        network,
-        mod_matrix,
-        dim)
+    guess_coordinates = get_spectral_coordinates(network,
+                                                 mod_matrix,
+                                                 dim)
+    return rmsd.kabsch_rmsd(guess_coordinates.values,
+                            target_coordinates.values)
+
+
+def new_fitness(individual,
+                network,
+                target_coordinates,
+                value_resolution,
+                max_mass,
+                min_mass,
+                dim):
+    '''
+    Fitness with new possible variation of laplacian
+    '''
+    masses = (max_mass - min_mass) * (individual / value_resolution) + min_mass
+    laplacian = create_customized_laplacian(network, masses)
+    guess_coordinates = get_spectral_coordinates(network,
+                                                 laplacian=laplacian,
+                                                 dim=dim)
+    return rmsd.kabsch_rmsd(guess_coordinates.values,
+                            target_coordinates.values)
+
+
+def new_fitness_v2(individual,
+                   network,
+                   target_coordinates,
+                   value_resolution,
+                   max_mass,
+                   min_mass,
+                   dim):
+    '''
+    Fitness with new possible variation (v2) of laplacian
+    '''
+    masses = (max_mass - min_mass) * (individual / value_resolution) + min_mass
+    laplacian = create_customized_laplacian_v2(network, masses)
+    guess_coordinates = get_spectral_coordinates(network,
+                                                 laplacian=laplacian,
+                                                 dim=dim)
     return rmsd.kabsch_rmsd(guess_coordinates.values,
                             target_coordinates.values)
 
 
 def genetic_algorithm(G_tupla,
                       dim,
-                      precision,
-                      max_iterations,
-                      population_size,
-                      population_half,
-                      elite_size,
-                      random_size,
-                      mutation_rate,
-                      mutation_iterations,
-                      value_resolution):
+                      fitness,
+                      value_resolution=value_resolution,
+                      min_mass=min_mass,
+                      max_mass=max_mass,
+                      precision=precision,
+                      max_iterations=max_iterations,
+                      population_size=population_size,
+                      population_half=population_half,
+                      elite_size=elite_size,
+                      random_size=random_size,
+                      mutation_rate=mutation_rate,
+                      mutation_part=mutation_part):
     '''
     Standard implementation of Genetic Algorithm optimizer
     '''
@@ -132,8 +166,13 @@ def genetic_algorithm(G_tupla,
         print("Generation: {}/{}".format(i,max_iterations))
         score = []
         for individual in population:
-            score.append(fitness(individual, G,
-                                 target_coordinates, value_resolution, dim))
+            score.append(fitness(individual,
+                                 G,
+                                 target_coordinates,
+                                 value_resolution,
+                                 min_mass,
+                                 max_mass,
+                                 dim))
         performance = list(zip(population, score))
         performance = sorted(performance, key=lambda a:a[1])
         #print([perf[1] for perf in performance])
@@ -144,7 +183,7 @@ def genetic_algorithm(G_tupla,
         else:
             population = new_generation([a[0] for a in performance],
                                         elite_size, random_size, mutation_rate,
-                                        mutation_iterations,
+                                        mutation_part,
                                         population_size, population_half,
                                         value_resolution)
     return progression, performance[0][0]
