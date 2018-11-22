@@ -160,11 +160,11 @@ def get_spectral_coordinates(network, mod_matrix=np.zeros(1),
         laplacian = nx.laplacian_matrix(network)
         if mod_matrix.any():
             laplacian = np.dot(mod_matrix, laplacian.toarray())
-            val, eigenvectors = np.linalg.eig(laplacian)
+            val, eigenvectors = np.linalg.eigh(laplacian)
         else:
-            val, eigenvectors = np.linalg.eig(laplacian.todense())
+            val, eigenvectors = np.linalg.eigh(laplacian.todense())
     else:
-        val, eigenvectors = np.linalg.eig(laplacian)
+        val, eigenvectors = np.linalg.eigh(laplacian)
     merged = (sorted(list(zip(val, eigenvectors.transpose().tolist())),
                      key=lambda k: k[0]))
     vec1 = np.asarray(merged[1][1])
