@@ -14,7 +14,7 @@ from network_tools import *
 import numpy as np
 from genetic_algorithm import *
 
-N = 4
+N = 5
 
 # GA parameters
 
@@ -76,7 +76,7 @@ x0 = sorted(get_spectral_coordinates(grafo[0], dim=1)["x"].values)
 
 
 #print(nx.laplacian_matrix(grafo[0]).todense())
-#print(np.linalg.eig(nx.laplacian_matrix(grafo[0]).todense()))
+#print(np.linalg.eigh(nx.laplacian_matrix(grafo[0]).todense()))
 
 print(rmsd.kabsch_rmsd(get_spectral_coordinates(grafo[0],
                              create_mod_matrix(mass_list),
@@ -135,10 +135,10 @@ a = 2.
 b = 1.
 c = 1000000.
 mass_list = np.array([0., 0., 0., 0., 0.,
-                      0., 0., 0., 0., 0.,
-                      0., 0., 1.1, 0., 0.,
-                      0., 0., 0., 0., 0.,
-                      0., 0., 0., 0., 0.,])
+                      0., 0.5, 1.0, 0.5, 0.,
+                      0., 1.0, 1.0, 1.0, 0.,
+                      0., 0.5, 1.0, 0.5, 0.,
+                      0., 0., 0., 0., 0.,])*2
 quick_compare_v2(grafo, mass_list, 2, True, False, view_thet=90)
 
 #%%
@@ -148,14 +148,14 @@ import numpy as np
 from genetic_algorithm import *
 import os
 
-N = 3
+N = 5
 grafo = create_lattice(N, N)
 def explorer2D(network, i, n_frames):
     minimum = 0.
     maximum = 10.
     values = np.asarray(np.linspace(minimum, maximum, n_frames))
     masses = np.zeros(N*N)
-    masses[4] = values[i]
+    masses[11] = values[i]
     return create_customized_laplacian_v2(network, masses)
 
 movie_maker_v2(grafo, explorer2D, 100, 2, kabsch=True)
@@ -237,3 +237,19 @@ def explorer1D(i, n_frames):
 network_tupla = create_path_graph(N)
 
 movie_maker(network_tupla, explorer1D, 100, 1)
+
+#%%
+# Simulated Annealing
+from network_tools import *
+import numpy as np
+from simulated_annealing import *
+import os
+
+N = 5
+
+network_tupla = create_lattice(N, N)
+
+simulated_annealing(network_tupla, 2).reshape((5,5))
+
+
+

@@ -1,7 +1,7 @@
 import numpy as np
 
 # GA parameters
-population_size = 1000
+population_size = 100
 elite_rate = 0.10
 random_rate = 0.10
 mutation_rate = 0.5
