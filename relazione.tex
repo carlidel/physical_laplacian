@@ -50,11 +50,53 @@
     
 \end{abstract}
 
+\section{Nozioni di base}\label{sec:base}
+
+Si esprime un grafo tramite la notazione \(G(V,E)\), dove \(V=\{1\ldots n\} \) è un insieme di \(n\) nodi ed \(E\) è un insieme di link.
+Ad ogni link \(\langle i , j\rangle \) si associa un peso non negativo \(w_{ij}\), laddove due nodi non sono connessi con un link, si assume \(w_{ij}=0\).
+Definiamo inoltre il vicinato di \(i\) come \(N(i)=\{j|\langle i,j \rangle \in E\} \) ed il \textit{degree} di un nodo \(i\) come \(\deg(i) = \sum_{j\in N(i)} w_{ij}\).
+Nel presente lavoro, si assume \(G\) connesso (qualora si abbia a che fare con grafi non connessi, si hanno da trattare le componenti distinte separatamente).
+
+La \textit{matrice delle adiacenze} di un grafo \(G\) è la matrice simmetrica \(n \times n\) definita come
+\begin{equation}
+    A_{ij}^G =
+    \begin{cases}
+        0, & i = j \\
+        w_{ij} & i \ne j
+    \end{cases}
+    i,j = 1,\ldots,n
+\end{equation}
+
+Il \textit{Laplaciano} di un grafo è una matrice simmetrica \(n \times n\) definita come
+\begin{equation}
+    L_{ij}^G =
+    \begin{cases}
+        \deg(i), & i = j \\
+        -w_{ij} & i \ne j
+    \end{cases}
+    i,j = 1,\ldots,n
+\end{equation} 
+Il Laplaciano è semi-definito positivo ed ha un solo autovalore nullo con associato autovettore \(1_n\).
+Una caratteristica importante del Laplaciano è data dal seguente lemma:
+\begin{lemma}\label{lem:laplaciano_quadratico}
+    Sia \(L\) un Laplaciano \(n\times n\) e sia \(\vb{x}\in \mathcal{R}^n\). Allora si ha
+    \begin{equation}
+        \vb{x}^T L \vb{x} = \sum_{i<j} w_{ij}{(x_i - x_j)}^2
+    \end{equation}
+    La dimostrazione è immediata a partire dalla definizione di Laplaciano.
+\end{lemma}
+Da questo lemma consegue che la forma quadratica associata al Laplaciano è in pratica una somma pesata di ogni coppia di distanze.
+
+Nel presente lavoro, si considerano gli autovalori di Laplaciano ordinati secondo la convenzione \(0 = \lambda_1 < \lambda_2 \leq \cdots \leq \lambda_n\) ed i corrispondenti autovettori reali ortonormali rappresentati tramite la notazione \(v_1 = (1/\sqrt{n})\cdot 1_n, v_2, \ldots, v_n\).
+
+Definiamo la \textit{Degree Matrix} come la matrice \(n\times n\) diagonale \(D\) tale che \(D_{ii} = \deg(i)\).
+Data una Degree Matrix \(D\) ed un Laplaciano \(L\), si dice che un vettore \(\vb{u}\) ed un scalare \(\mu \) sono una auto-coppia generalizzata di \(L,D\) se \(L\vb{u}=\mu D \vb{u}\).
+
 \section{Spectral Drawing di un grafo}\label{sec:spectral_drawing}
 
 \section{Perturbazioni e modifiche del Laplaciano}\label{sec:perturbazioni}
 
-\section{Applicazione a toy models}\label{sec:applicazione}
+\section{Applicazione a Toy Models}\label{sec:applicazione}
 
 
 
