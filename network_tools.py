@@ -160,7 +160,8 @@ def get_spectral_coordinates(network, mod_matrix=np.zeros(1),
         laplacian = nx.laplacian_matrix(network)
         if mod_matrix.any():
             laplacian = np.dot(mod_matrix, laplacian.toarray())
-            val, eigenvectors = np.linalg.eigh(laplacian)
+            # In this case we do not have simmetry in the matrix
+            val, eigenvectors = np.linalg.eig(laplacian)
         else:
             val, eigenvectors = np.linalg.eigh(laplacian.todense())
     else:
@@ -290,14 +291,56 @@ def quick_compare(network_tupla,
             savepath=namefile)
 
 
+def quick_compare_v1(network_tupla,
+                     mass_list,
+                     dim=3,
+                     show=True,
+                     save=False,
+                     namefile="",
+                     view_thet=90,
+                     view_phi=90):
+    original_coords = network_tupla[1]
+    base_coords = get_spectral_coordinates(network_tupla[0], dim=dim)
+    after_coords = get_spectral_coordinates(
+        network_tupla[0],
+        laplacian=create_customized_laplacian(network_tupla[0], mass_list),
+        dim=dim)
+    print("RMSD before mass modulation: {:f}".format(rmsd.kabsch_rmsd(
+        original_coords.values, base_coords.values)))
+    print("RMSD after mass modulation: {:f}".format(rmsd.kabsch_rmsd(
+        original_coords.values, after_coords.values)))
+    base_coords = pd.DataFrame(
+        rmsd.kabsch_rotate(base_coords.values,
+                           original_coords.values),
+        columns=["x", "y", "z"])
+    after_coords = pd.DataFrame(
+        rmsd.kabsch_rotate(after_coords.values,
+                           original_coords.values),
+        columns=["x", "y", "z"])
+    if show:
+        plot_multiple_3d_scatter(
+            [original_coords, base_coords, after_coords],
+            ["Original", "Spectral basic", "Spectral modulated"],
+            view_thet=view_thet,
+            view_phi=view_phi)
+    if save:
+        plot_multiple_3d_scatter(
+            [original_coords, base_coords, after_coords],
+            ["Original", "Spectral basic", "Spectral modulated"],
+            view_phi=view_phi,
+            view_thet=view_thet,
+            showfig=False,
+            savepath=namefile)
+
+
 def quick_compare_v2(network_tupla,
-                      mass_list,
-                      dim=3,
-                      show=True,
-                      save=False,
-                      namefile="",
-                      view_thet=90,
-                      view_phi=90):
+                     mass_list,
+                     dim=3,
+                     show=True,
+                     save=False,
+                     namefile="",
+                     view_thet=90,
+                     view_phi=90):
     original_coords = network_tupla[1]
     base_coords = get_spectral_coordinates(network_tupla[0], dim=dim)
     after_coords = get_spectral_coordinates(
