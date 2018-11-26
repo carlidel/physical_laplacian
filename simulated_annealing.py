@@ -18,8 +18,8 @@ Standard implementation of a Simulated Annealing classificator
 value_resolution = 100
 min_mass = 0.
 max_mass = 10.
-T_0 = 0.001
-n_iterations = 10000
+T_0 = 0.01
+n_iterations = 50000
 
 # Funcitions
 
@@ -73,7 +73,7 @@ def simulated_annealing(G_tupla,
     G = G_tupla[0]
     target_coordinates = G_tupla[1]
     individual = first_individual(len(G.nodes()), value_resolution)
-    T_list = np.linspace(T_0, 0, n_iterations, endpoint=False)
+    T_list = np.logspace(np.log10(T_0), -5, n_iterations, endpoint=False)
     for i in range(len(T_list)):
         # Creation and evaluation
         fit_score = fitness(G,
@@ -105,4 +105,5 @@ def simulated_annealing(G_tupla,
             if (np.random.rand()
                     < np.exp((fit_score - fit_score_candidate) / T_list[i])):
                 individual = candidate
-    return candidate
+    return ((max_mass - min_mass) * (individual / value_resolution)
+            + min_mass)
