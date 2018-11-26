@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 import os
-from parameters import *
 
 """
 Wrapping of networkx, functions and visualization tools for working with
