@@ -4,7 +4,6 @@ import pandas as pd
 import matplotlib.pylab as plt
 import rmsd
 import random
-from parameters import *
 from network_tools import *
 
 """
