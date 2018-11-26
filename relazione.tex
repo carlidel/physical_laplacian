@@ -11,6 +11,9 @@
 \usepackage{physics}
 
 \mathtoolsset{showonlyrefs,showmanualtags}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\E}{\mathrm{E}}
+\newcommand{\Cov}{\mathrm{Cov}}
 
 \usepackage{graphicx}
 \usepackage{subfig}
@@ -19,9 +22,9 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{corollary}{Corollary}[theorem]
-\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}{Teorema}[section]
+\newtheorem{proof}{Dimostrazione}[section]
 
 %%% BackEnd Bibliografico
 %\usepackage{textcomp}
@@ -94,9 +97,94 @@ Data una Degree Matrix \(D\) ed un Laplaciano \(L\), si dice che un vettore \(\v
 
 \section{Spectral Drawing di un grafo}\label{sec:spectral_drawing}
 
+Per Spectral Drawing di un grafo si intende fare uso di un algoritmo di visualizzazione basato sull'utilizzo degli autovalori non nulli più bassi del Laplaciano e dei corrispettivi autovalori. Tale tecnica assume anche il nome di \textit{Eigen-Projection Method}.
+L'uso del Laplaciano per il disegno di un grafo ha solide giustificazioni matematiche e permette di ottenere risultati di visualizzazione molto validi e significativi.
+Si analizzeranno ora tali giustificazioni matematiche e si esploreranno alcune varianti dello Spectral Drawing.
+
+\subsection{Derivazione dell'Eigen-Projection Method}\label{subsec:eigen-projection}
+
+Si introduce l'Eigen-Projection Method come soluzione ad un problema di minimizzazione. Si presenta tale problema per il disegno di un grafo su di una dimensione, per poi espanderlo ad un numero arbitrario di dimensioni.
+
+Sia dato un grafo pesato \(G(V,E)\), indichiamone il suo layout monodimensionale con un vettore \(\vb{x} \in \mathcal{R}^n\), dove \(x_i\) è la posizione del nodo \(i\). Si vuole che \(\vb{x}\) sia la soluzione del seguente problema di minimizzazione:
+\begin{gather}
+    \min_{\vb{x}} \E(\vb{x}) = \sum_{\langle i, j\rangle \in E} w_{ij}{(x_i - x_j)}^2 \label{eq:minimization}\\
+    \Var(\vb{x}) = 1
+\end{gather}
+dove \(\Var(\vb{x})\) è la varianza di \(\vb(x)\) definita in questo contesto come \(\Var(\vb{x}) = \frac{1}{n}\sum_{i=1}^n {(x_i - \bar{x})}^2\), dove \(\bar{x}\) è la media delle componenti di \(\vb{x}\).
+
+Questo problema di minimizzazione dell'energia punta a mantenere minime le lunghezze dei link di connessione.
+Avendo inoltre una somma pesata rispetto ai pesi di tali link, link con peso maggiore risulteranno più accorciati rispetto a link di peso minore.
+Il constraint \(\Var(\vb{x}) = 1\) si limita a definire la scala del disegno del grafo. Una soluzione valida di~\eqref{eq:minimization} con varianza unitaria \(\vb{x}_0\) risulta valida per lo stesso problema con varianza pari a \(c\) tramite la modifica \(\sqrt{c}\cdot\vb{x}_0\).
+
+Il problema di base è invariante per traslazioni delle coordinate.
+Per rimuovere questo grado di libertà si richiede che la media delle componenti di \(\vb{x}\) sia nulla.
+Questo permette inoltre di poter scrivere la varianza nella forma semplice \(\Var(x) = \frac{1}{n}\vb{x}^T\vb{x}\).
+Per semplificare ulteriormente la notazione, si può lavorare con la varianza impostata al valore \(\frac{1}{n}\), dimodo che sia possibile scrivere come condizione vincolante: \(\vb{x}^T\vb{x} = \sum_{i=1}^n x_i^2 = 1\).
+
+Facendo ricorso al Lemma~\ref{lem:laplaciano_quadratico}, si può riscrivere l'energia nella forma matriciale:
+\begin{equation}
+    \E(\vb(x)) = \vb{x}^T L\vb{x} = \sum_{\langle i,j\rangle\in \E} w_{ij}\cdot {(x_i - x_j)}^2
+\end{equation}
+A questo punto, è possibile descrivere il layout unidimensionale \(\vb{x}\) come la soluzione del problema di minimizzazione vincolato:
+\begin{align}
+    & \min_{\vb{x}} \vb{x}^T L\vb{x}\\
+    & \text{dato:} \vb{x}^T\vb{x} = 1 \\
+    & \text{nel sottospazio:} \vb{x}^T \cdot 1_n = 0
+\end{align}
+Tale problema rientra nella cateogoria dei \textit{Constrained Quadratic Optimization Problems}.
+Si analizzano nel dettaglio tali problemi in Appendice~\ref{sec:soluzione_constrained}, dove nel dettaglio si dimostra (ponendo \(B=I\) nel Teorema~\ref{thr:soluzione_ottimizzazione}) che la soluzione ottimale corrisponde a \(\vb{x} = \vb{v}_2\), il secondo autovettore più piccolo del Laplaciano \(L\).
+
+\subsection{Spectral Drawing tramite autovettori Degree-Normalized}
+
 \section{Perturbazioni e modifiche del Laplaciano}\label{sec:perturbazioni}
 
 \section{Applicazione a Toy Models}\label{sec:applicazione}
+
+\appendix
+\section{Soluzione al Constrained Quadratic Optimization Problem}\label{sec:soluzione_constrained}
+In questa appendice si analizza una particolare tipologia di problemi di ottimizzazione, la cui soluzione è un autovettore generalizzato.
+
+Siano le seguenti 2 matrici:
+\begin{enumerate}
+    \item \(A\), una matrice \(n \times n\) reale simmetrica semidefinita positiva.
+    \item \(B\), una matrice \(n \times n\) diagonale, i cui elementi sono reali-positivi.
+\end{enumerate}
+Si indicano gli autovettori generalizzati di \((A,B)\) con la notazione \(\vb{u}_1,\vb{u}_2,\ldots,\vb{u}_n\), con corrispondenti autovalori \(0\leq\lambda_1\leq\lambda_2\leq\cdots\leq\lambda_n\).
+Questi sono definiti secondo l'espressione \(A \vb{u}_i = \Lambda_i B u_i\).
+Per identificare univocamente gli autovettori, ne si esegue la \(B\)-normalizzazione (i.e.\  \(\vb{u}_i^T B \vb{u}=1\)).
+
+Si ha inoltre che \(B^{1/2}\vb{u}_i\) e \(\lambda_i\) sono auto-coppia della matrice \(B^{-1/2} A B^{-1/2}\).
+Si noti che la matrice \(B^{-1/2} A B^{-1/2}\) è simmetrica semidefinita positiva, si ha quindi che tutti gli autovalori sono reali non-negativi e che gli autovettori generalizzati sono \(B\)-ortogonali (i.e.\  \(\vb{u}_i^T B \vb{u}_j = 0, \forall i \neq j\)).
+
+Definiamo quindi il seguente problema di ottimizzazione vincolato:
+\begin{align}
+    & \min_{\vb{x}} \vb{x}^T L\vb{x} \label{eq:definition}\\
+    & \text{dato:} \vb{x}^T B\vb{x} = 1 \\
+    & \text{nel sottospazio:} \vb{x}^T B \vb{u}_1,\ldots, \vb{x}^T B \vb{u}_{k-1} = 0.
+\end{align}
+
+\begin{theorem}\label{thr:soluzione_ottimizzazione}
+    La soluzione ottimale al problema~\eqref{eq:definition} è data da \(\vb{x}=\vb{u}_k\), con un costo associato pari a \(\vb{x}^T A \vb{x} = \lambda_k\).
+\end{theorem}
+\begin{proof}
+    Sfruttando la \(B\)-ortogonalità di \(\vb{u}_1,\ldots,\vb{u}_n\), possiamo decomporre ogni \(\vb{x} \in \mathcal{R}^n\) con la base definita dagli autovettori. Avendo inoltre che \(\vb{x}\) è vincolato ad essere \(B\)-ortogonale a \(\vb{u}_1,\ldots,\vb{u}_{k-1}\), possiamo limitarci a trattare combinazioni lineari nella forma \(\vb{x} = \sum_{i=k}^n \alpha_i u_i\).
+
+    Facendo uso del vincolo \(\vb{x}^T B\vb{x} = 1\), otteniamo
+    \begin{multline}
+        1 = \vb{x}^T B\vb{x} = {\left(\sum_{i=k}^n \alpha_i \vb{u}_i\right)}^T B \left(\sum_{i=k}^n \alpha_i \vb{u}_i\right) = {\left(\sum_{i=k}^n \alpha_i \vb{u}_i\right)}^T \left(\sum_{i=k}^n \alpha_i B \vb{u}_i\right) = \\
+        = \sum_{i=k}^n\sum_{j=k}^n \alpha_i \vb{u}_i \alpha_j B u_j = \sum_{i=k}^n\sum_{j=k}^n \alpha_i \alpha_j \vb{u}_i B \vb{u}_j = \sum_{i=k}^n \alpha_i^2
+    \end{multline}
+    L'ultimo passaggio è dato dalla \(B\)-ortogonalità dei vettori \(\vb{u}_1,\ldots,\vb{u}_n\), e dal definire questi vettori come \(B\)-normalizzati.
+
+    Da qui, \(\sum_{i=k}^n \alpha_i^2\).
+    Passando poi all'espansione della forma quadratica \(\vb{x}^T A \vb{x}\):
+    \begin{align}
+        \vb{x}^T A \vb{x} &= {\left(\sum_{i=k}^n \alpha_i \vb{u}_i\right)}^T A \left(\sum_{i=k}^n \alpha_i \vb{u}_i\right) = {\left(\sum_{i=k}^n \alpha_i \vb{u}_i\right)}^T \left(\sum_{i=k}^n \alpha_i A \vb{u}_i\right) = \\
+        &= {\left(\sum_{i=k}^n \alpha_i \vb{u}_i\right)}^T \left(\sum_{i=k}^n \alpha_i \lambda_i B \vb{u}_i\right) = \sum_{i=k}^n\sum_{j=k}^n \alpha_i \vb{u}_i \alpha_j \lambda_i B u_j = \\
+        &= \sum_{i=k}^n\sum_{j=k}^n \alpha_i\alpha_j \lambda_i\vb{u}_i B \vb{u}_j = \sum_{i=k}^n \alpha_i^2 \lambda_i \geq \sum_{i=k}^n \alpha_i^2 \lambda_k = \lambda_k
+    \end{align}
+    Ergo, per ogni \(\vb{x}\) che soddisfa i vincoli, si ha che \(\vb{x}^T A \vb{x} \geq \lambda_k\). Siccome si ha che \(\vb{u}_k^T A \vb{u}_k = \lambda_k\), se ne deduce che la soluzione minimizzante è \(\vb{x} = \vb{u}_k\).
+\end{proof}
 
 
 
