@@ -44,9 +44,7 @@ def fitness_v1(net, individual, target_coordinates, min_mass, max_mass, dim):
     masses = ((max_mass - min_mass) * (individual / value_resolution)
               + min_mass)
     laplacian = create_customized_laplacian(net, masses)
-    guess_coordinates = get_spectral_coordinates(net,
-                                                 laplacian=laplacian,
-                                                 dim=dim)
+    guess_coordinates = get_spectral_coordinates(laplacian, dim=dim)
     return rmsd.kabsch_rmsd(guess_coordinates.values,
                             target_coordinates.values)
 
@@ -55,9 +53,7 @@ def fitness_v2(net, individual, target_coordinates, min_mass, max_mass, dim):
     masses = ((max_mass - min_mass) * (individual / value_resolution)
               + min_mass)
     laplacian = create_customized_laplacian_v2(net, masses)
-    guess_coordinates = get_spectral_coordinates(net,
-                                                 laplacian=laplacian,
-                                                 dim=dim)
+    guess_coordinates = get_spectral_coordinates(laplacian, dim=dim)
     return rmsd.kabsch_rmsd(guess_coordinates.values,
                             target_coordinates.values)
 

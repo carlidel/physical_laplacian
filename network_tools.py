@@ -137,10 +137,11 @@ def create_customized_laplacian_v2(net, mass_list):
     return nx.laplacian_matrix(network).todense()
 
 
-def get_spectral_coordinates(network, mod_matrix=np.zeros(1),
-                             laplacian=np.zeros(1), dim=3):
+def get_spectral_coordinates(laplacian=np.zeros(1), 
+                             mod_matrix=np.zeros(1),
+                             dim=3):
     '''
-    Given a network, returns eigenvectors associated to the second,
+    Given a network laplacian, returns eigenvectors associated to the second,
     third and fourth lowest eigenvalues as (x,y,z) axis, based on the spectral
     representation.
 
@@ -149,21 +150,18 @@ def get_spectral_coordinates(network, mod_matrix=np.zeros(1),
 
     Parameters
     ----------
-    network : a networkx object
+    laplacian : the laplacian matrix (in array matrix form)
     
     mod_matrix : mass modulation matrix
     
     dim : choose how many dimentions to consider (must be [1,3])
     '''
-    if not(laplacian.any()):
-        laplacian = nx.laplacian_matrix(network)
-        if mod_matrix.any():
-            laplacian = np.dot(mod_matrix, laplacian.toarray())
-            # In this case we do not have simmetry in the matrix
-            val, eigenvectors = np.linalg.eig(laplacian)
-        else:
-            val, eigenvectors = np.linalg.eigh(laplacian.todense())
+    if mod_matrix.any():
+        laplacian = np.dot(mod_matrix, laplacian)
+        # In this case we do not have a symmetric matrix
+        val, eigenvectors = np.linalg.eig(laplacian)
     else:
+        # In this case we have a symmetric matrix
         val, eigenvectors = np.linalg.eigh(laplacian)
     merged = (sorted(list(zip(val, eigenvectors.transpose().tolist())),
                      key=lambda k: k[0]))
@@ -257,9 +255,11 @@ def quick_compare(network_tupla,
                   view_thet=90,
                   view_phi=90):
     original_coords = network_tupla[1]
-    base_coords = get_spectral_coordinates(network_tupla[0], dim=dim)
+    base_coords = get_spectral_coordinates(
+        nx.laplacian_matrix(network_tupla[0]).todense(),
+        dim=dim)
     after_coords = get_spectral_coordinates(
-        network_tupla[0],
+        nx.laplacian_matrix(network_tupla[0]).todense(),
         mod_matrix=create_mod_matrix(mass_list),
         dim=dim)
     print("RMSD before mass modulation: {:f}".format(rmsd.kabsch_rmsd(
@@ -299,9 +299,10 @@ def quick_compare_v1(network_tupla,
                      view_thet=90,
                      view_phi=90):
     original_coords = network_tupla[1]
-    base_coords = get_spectral_coordinates(network_tupla[0], dim=dim)
+    base_coords = get_spectral_coordinates(
+        nx.laplacian_matrix(network_tupla[0]).todense(),
+        dim=dim)
     after_coords = get_spectral_coordinates(
-        network_tupla[0],
         laplacian=create_customized_laplacian(network_tupla[0], mass_list),
         dim=dim)
     print("RMSD before mass modulation: {:f}".format(rmsd.kabsch_rmsd(
@@ -341,10 +342,11 @@ def quick_compare_v2(network_tupla,
                      view_thet=90,
                      view_phi=90):
     original_coords = network_tupla[1]
-    base_coords = get_spectral_coordinates(network_tupla[0], dim=dim)
+    base_coords = get_spectral_coordinates(
+        nx.laplacian_matrix(network_tupla[0]).todense(),
+        dim=dim)
     after_coords = get_spectral_coordinates(
-        network_tupla[0],
-        laplacian=create_customized_laplacian_v2(network_tupla[0], mass_list),
+        create_customized_laplacian_v2(network_tupla[0], mass_list),
         dim=dim)
     print("RMSD before mass modulation: {:f}".format(rmsd.kabsch_rmsd(
         original_coords.values, base_coords.values)))
@@ -385,7 +387,9 @@ def movie_maker(network_tupla,
     os.system("del \"foo\\foo*.jpg\"")
     network = network_tupla[0]
     original_coords = network_tupla[1]
-    base_coords = get_spectral_coordinates(network, dim=dim)
+    base_coords = get_spectral_coordinates(
+        nx.laplacian_matrix(network).todense(),
+        dim=dim)
     if kabsch:
         base_coords = pd.DataFrame(
             rmsd.kabsch_rotate(base_coords.values,
@@ -394,9 +398,10 @@ def movie_maker(network_tupla,
     for i in range(n_frames):
         print(str(i) + "/" + str(n_frames))
         mod_matrix = function(i, n_frames)
-        after_coords = get_spectral_coordinates(network,
-                                                mod_matrix,
-                                                dim)
+        after_coords = get_spectral_coordinates(
+            nx.laplacian_matrix(network).todense(),
+            mod_matrix,
+            dim)
         if kabsch:
             after_coords = pd.DataFrame(
                 rmsd.kabsch_rotate(after_coords.values,
@@ -424,7 +429,9 @@ def movie_maker_v2(network_tupla,
     os.system("del \"foo\\foo*.jpg\"")
     network = network_tupla[0]
     original_coords = network_tupla[1]
-    base_coords = get_spectral_coordinates(network, dim=dim)
+    base_coords = get_spectral_coordinates(
+        nx.laplacian_matrix(network).todense(),
+        dim=dim)
     if kabsch:
         base_coords = pd.DataFrame(
             rmsd.kabsch_rotate(base_coords.values,
@@ -433,9 +440,9 @@ def movie_maker_v2(network_tupla,
     for i in range(n_frames):
         print(str(i) + "/" + str(n_frames))
         laplacian = function(network, i, n_frames)
-        after_coords = get_spectral_coordinates(network,
-                                                laplacian=laplacian,
-                                                dim=dim)
+        after_coords = get_spectral_coordinates(
+            laplacian,
+            dim=dim)
         if kabsch:
             after_coords = pd.DataFrame(
                 rmsd.kabsch_rotate(after_coords.values,
