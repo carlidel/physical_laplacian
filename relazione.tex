@@ -154,7 +154,7 @@ Se quindi riprendiamo il problema originale di minimizzazione~\eqref{eq:minimiza
 \begin{align}
     & \min_{\vb{x}} \vb{x}^T L \vb{x} \label{eq:with_degree}\\
     & \text{dato: } \vb{x}^T D \vb{x} = 1\\
-    & \text{nel sottospazio: } \vb{x}^T D 1_n = 0\\
+    & \text{nel sottospazio: } \vb{x}^T D 1_n = 0
 \end{align}
 Lavorando sempre con il Teorema~\ref{thr:soluzione_ottimizzazione} sostituendo però \(B\) con \(D\), si ottiene \(\vb{x} = \vb{u}_2\), il secondo autovettore generalizzato più piccolo di \((L, D)\).
 Utilizzando lo stesso ragionamento mostrato in Sottosezione~\ref{subsec:eigen-projection}, si può far uso degli autovettori associati agli autovalori generalizzati non nulli più piccoli di \((L, D)\).
@@ -163,13 +163,43 @@ Questo diverso approccio presenta diversi punti di forza per certi problemi di v
 Per poter comprendere in che modo questa variazione ha effetto sul risultato finale, si può considerare il problema~\eqref{eq:with_degree} nella forma equivalente:
 \begin{align}
     & \min_{\vb{x}} \frac{\vb{x}^T L \vb{x}}{\vb{x}^T D \vb{x}} \label{eq:with_degree_equivalent}\\
-    & \text{nel sottospazio: } \vb{x}^T D 1_n = 0\\
+    & \text{nel sottospazio: } \vb{x}^T D 1_n = 0
 \end{align}
 Nel problema~\eqref{eq:with_degree_equivalent}, si ha che il denominatore modera il comportamento del numeratore.
+Il numeratore tende a collocare i nodi con degree maggiore al centro del disegno, in modo da aumentare la loro vicinanza agli altri nodi.
+Al contrario, il denominatore cerca di aumentare lo scatter dei nodi con degree maggiore.
+Questa combinazione di obiettivi opposti finisce col rendere il disegno generale molto più equilibrato, evitando situazioni in cui nodi con basso degree vengono collocati troppo separati rispetto al resto dei nodi.
+
+Gli autovettori degree-normalized sono anche autovettori (non generalizzati) della matrice \(D^{-1} A\).
+Questo lo si può ricavare moltiplicando entrambi i termini dell'equazione algebrica \(A\vb{x} = \mu D \vb{x}\) per \(D^{-1}\), ottenendo l'equazione
+\begin{equation}
+    D^{-1} A \vb{x} = \mu\vb{x}
+\end{equation}
+Si ha da evidenziare che \(D^{-1} A\) è anche nota come \textit{Transition Matrix} di una random walk sul grafo G. Ergo, la degree-normalized eigen-projection fa uso dei primi autovettori della Transition Matrix per eseguire il disegno del grafo.
+
+% TODO: note su performance note da paper per questo metodo noto.
+
+\subsection{Alcuni esempi}\label{subsec:drawing_examples}
 
 \section{Perturbazioni e modifiche del Laplaciano}\label{sec:perturbazioni}
 
+\subsection{Perturbazione con Degree Matrix modificata}
+
+\subsection{Perturbazione tramite assegnazione pesi ai link}
+
+\subsection{Classificatori utilizzati}
+
+\subsubsection{Genetic Algorithm}
+
+\subsubsection{Simulated Annealing}
+
 \section{Applicazione a Toy Models}\label{sec:applicazione}
+
+\subsection{Toy Models 1D}
+
+\subsection{Toy Models 2D}
+
+\subsection{Toy Models 3D}
 
 \appendix
 \section{Soluzione al Constrained Quadratic Optimization Problem}\label{sec:soluzione_constrained}
@@ -190,8 +220,8 @@ Si noti che la matrice \(B^{-1/2} A B^{-1/2}\) è simmetrica semidefinita positi
 Definiamo quindi il seguente problema di ottimizzazione vincolato:
 \begin{align}
     & \min_{\vb{x}} \vb{x}^T L\vb{x} \label{eq:definition}\\
-    & \text{dato:} \vb{x}^T B\vb{x} = 1 \\
-    & \text{nel sottospazio:} \vb{x}^T B \vb{u}_1,\ldots, \vb{x}^T B \vb{u}_{k-1} = 0.
+    & \text{dato: } \vb{x}^T B\vb{x} = 1 \\
+    & \text{nel sottospazio: } \vb{x}^T B \vb{u}_1,\ldots, \vb{x}^T B \vb{u}_{k-1} = 0.
 \end{align}
 
 \begin{theorem}\label{thr:soluzione_ottimizzazione}
