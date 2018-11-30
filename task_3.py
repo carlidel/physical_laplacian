@@ -25,7 +25,7 @@ obtained_weights, scores = big_test_ga(network_tupla, 1, "edg", ga.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/line_10_f2_ga.pkl', 'w') as f:
+with open('batch/line_10_f2_ga.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 obtained_weights, scores = big_test_sa(network_tupla, 1, "edg", sa.fitness_v3,
@@ -33,7 +33,7 @@ obtained_weights, scores = big_test_sa(network_tupla, 1, "edg", sa.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/line_10_f2_sa.pkl', 'w') as f:
+with open('batch/line_10_f2_sa.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 # 1D line (n = 25)
@@ -47,7 +47,7 @@ obtained_weights, scores = big_test_ga(network_tupla, 1, "edg", ga.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/line_25_f2_ga.pkl', 'w') as f:
+with open('batch/line_25_f2_ga.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 obtained_weights, scores = big_test_sa(network_tupla, 1, "edg", sa.fitness_v3,
@@ -55,7 +55,7 @@ obtained_weights, scores = big_test_sa(network_tupla, 1, "edg", sa.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/line_25_f2_sa.pkl', 'w') as f:
+with open('batch/line_25_f2_sa.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 
@@ -70,7 +70,7 @@ obtained_weights, scores = big_test_ga(network_tupla, 2, "edg", ga.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/lattice_5_f2_ga.pkl', 'w') as f:
+with open('batch/lattice_5_f2_ga.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 obtained_weights, scores = big_test_sa(network_tupla, 2, "edg", sa.fitness_v3,
@@ -78,7 +78,7 @@ obtained_weights, scores = big_test_sa(network_tupla, 2, "edg", sa.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/lattice_5_f2_sa.pkl', 'w') as f:
+with open('batch/lattice_5_f2_sa.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 # 2D lattice (n = 10)
@@ -92,7 +92,7 @@ obtained_weights, scores = big_test_ga(network_tupla, 2, "edg", ga.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/lattice_10_f2_ga.pkl', 'w') as f:
+with open('batch/lattice_10_f2_ga.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 obtained_weights, scores = big_test_sa(network_tupla, 2, "edg", sa.fitness_v3,
@@ -100,7 +100,7 @@ obtained_weights, scores = big_test_sa(network_tupla, 2, "edg", sa.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/lattice_10_f2_sa.pkl', 'w') as f:
+with open('batch/lattice_10_f2_sa.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 # 2D lattice (n = 20)
@@ -114,7 +114,7 @@ obtained_weights, scores = big_test_ga(network_tupla, 2, "edg", ga.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/lattice_20_f2_ga.pkl', 'w') as f:
+with open('batch/lattice_20_f2_ga.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 obtained_weights, scores = big_test_sa(network_tupla, 2, "edg", sa.fitness_v3,
@@ -122,7 +122,7 @@ obtained_weights, scores = big_test_sa(network_tupla, 2, "edg", sa.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/lattice_20_f2_sa.pkl', 'w') as f:
+with open('batch/lattice_20_f2_sa.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 # 3D cube (n = 5)
@@ -136,7 +136,7 @@ obtained_weights, scores = big_test_ga(network_tupla, 3, "edg", ga.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/cube_5_f2_ga.pkl', 'w') as f:
+with open('batch/cube_5_f2_ga.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 obtained_weights, scores = big_test_sa(network_tupla, 3, "edg", sa.fitness_v3,
@@ -144,7 +144,7 @@ obtained_weights, scores = big_test_sa(network_tupla, 3, "edg", sa.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/cube_5_f2_sa.pkl', 'w') as f:
+with open('batch/cube_5_f2_sa.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 # 3D cube (n = 7)
@@ -158,7 +158,7 @@ obtained_weights, scores = big_test_ga(network_tupla, 3, "edg", ga.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/cube_7_f2_ga.pkl', 'w') as f:
+with open('batch/cube_7_f2_ga.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
 
 obtained_weights, scores = big_test_sa(network_tupla, 3, "edg", sa.fitness_v3,
@@ -166,5 +166,5 @@ obtained_weights, scores = big_test_sa(network_tupla, 3, "edg", sa.fitness_v3,
                                        value_resolution=value_resolution,
                                        min_mass=min_mass,
                                        max_mass=max_mass)
-with open('batch/cube_7_f2_sa.pkl', 'w') as f:
+with open('batch/cube_7_f2_sa.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
