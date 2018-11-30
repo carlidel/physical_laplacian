@@ -16,10 +16,11 @@ Standard implementation of a Simulated Annealing classificator
 # Simulated Annealing parameters
 
 value_resolution = 100
-min_mass = 0.
-max_mass = 10.
+min_mass = 1.
+max_mass = 100.
 T_0 = 0.01
-n_iterations = 50000
+T_1 = 0.000001
+n_iterations = 500000
 
 # Funcitions
 
@@ -40,19 +41,30 @@ def new_individual(individual, value_resolution):
     return np.asarray(new_individual)
 
 
-def fitness_v1(net, individual, target_coordinates, min_mass, max_mass, dim):
-    masses = ((max_mass - min_mass) * (individual / value_resolution)
-              + min_mass)
+def fitness(net, masses, target_coordinates, dim):
+    laplacian = nx.laplacian_matrix(net).todense()
+    mod_matrix = create_inverse_mod_matrix(masses)
+    guess_coordinates = get_spectral_coordinates(laplacian, mod_matrix, dim)
+    return rmsd.kabsch_rmsd(guess_coordinates.values,
+                            target_coordinates.values)
+
+
+def fitness_v1(net, masses, target_coordinates, dim):
     laplacian = create_customized_laplacian(net, masses)
     guess_coordinates = get_spectral_coordinates(laplacian, dim=dim)
     return rmsd.kabsch_rmsd(guess_coordinates.values,
                             target_coordinates.values)
 
 
-def fitness_v2(net, individual, target_coordinates, min_mass, max_mass, dim):
-    masses = ((max_mass - min_mass) * (individual / value_resolution)
-              + min_mass)
+def fitness_v2(net, masses, target_coordinates, dim):
     laplacian = create_customized_laplacian_v2(net, masses)
+    guess_coordinates = get_spectral_coordinates(laplacian, dim=dim)
+    return rmsd.kabsch_rmsd(guess_coordinates.values,
+                            target_coordinates.values)
+
+
+def fitness_v3(net, masses, target_coordinates, dim):
+    laplacian = create_weighted_laplacian(net, masses)
     guess_coordinates = get_spectral_coordinates(laplacian, dim=dim)
     return rmsd.kabsch_rmsd(guess_coordinates.values,
                             target_coordinates.values)
@@ -60,30 +72,36 @@ def fitness_v2(net, individual, target_coordinates, min_mass, max_mass, dim):
 
 def simulated_annealing(G_tupla,
                         dim,
+                        n_items="nodes", # or edges
                         fitness=fitness_v1,
                         value_resolution=value_resolution,
                         min_mass=min_mass,
                         max_mass=max_mass,
                         T_0=T_0,
+                        T_1=T_1,
                         n_iterations=n_iterations):
     G = G_tupla[0]
     target_coordinates = G_tupla[1]
-    individual = first_individual(len(G.nodes()), value_resolution)
-    T_list = np.logspace(np.log10(T_0), -5, n_iterations, endpoint=False)
+    if n_items == "nodes":
+        individual = first_individual(len(G.nodes()), value_resolution)
+    else:
+        individual = first_individual(len(list(G.edges())), value_resolution)
+    print(len(individual))
+    T_list = np.logspace(np.log10(T_0), np.log10(T_1), n_iterations, endpoint=False)
     for i in range(len(T_list)):
         # Creation and evaluation
+        masses = ((max_mass - min_mass) * (individual / value_resolution)
+                  + min_mass)
         fit_score = fitness(G,
-                            individual,
+                            masses,
                             target_coordinates,
-                            min_mass,
-                            max_mass,
                             dim)
         candidate = new_individual(individual, value_resolution)
+        masses_2 = ((max_mass - min_mass) * (candidate / value_resolution)
+                  + min_mass)
         fit_score_candidate = fitness(G,
-                                      candidate,
+                                      masses_2,
                                       target_coordinates,
-                                      min_mass,
-                                      max_mass,
                                       dim)
         # Printing progress
         if i % 100 == 0:

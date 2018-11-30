@@ -137,6 +137,18 @@ def create_customized_laplacian_v2(net, mass_list):
     return nx.laplacian_matrix(network).todense()
 
 
+def create_weighted_laplacian(net, mass_list):
+    '''
+    Modify all the links' weight and then return the new computed laplacian
+    '''
+    network = net.copy()
+    edge_list = list(network.edges())
+    assert len(mass_list) == len(edge_list)
+    for i in range(len(mass_list)):
+        network[edge_list[i][0]][edge_list[i][1]]['weight'] = mass_list[i]
+    return nx.laplacian_matrix(network).todense()
+
+
 def get_spectral_coordinates(laplacian=np.zeros(1), 
                              mod_matrix=np.zeros(1),
                              dim=3):
@@ -245,6 +257,37 @@ def plot_multiple_3d_scatter(datasets,
         ax.view_init(view_thet, view_phi)
         plt.savefig(savepath, dpi=300)
         plt.close()
+
+
+def plot_edges_weights_2D(network,
+                          weight_list,
+                          title="",
+                          savepath="",
+                          showfig=True,
+                          view_thet=30,
+                          view_phi=0):
+    edge_list = list(network.edges())
+    x = []
+    y = []
+    for i in range(len(weight_list)):
+        x.append((edge_list[i][0][0] + edge_list[i][1][0]) / 2)
+        y.append((edge_list[i][0][1] + edge_list[i][1][1]) / 2)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(x, y, edge_list)
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Weight")
+    if title != "":
+        ax.set_title(title)
+    ax.view_init(view_thet, view_phi)
+    if showfig:
+        plt.show()
+        plt.close()
+    if savepath != "":
+        plt.savefig(savepath, dpi=300)
+        plt.close()
+
 
 def quick_compare(network_tupla,
                   mass_list,
@@ -397,7 +440,7 @@ def movie_maker(network_tupla,
             columns=["x", "y", "z"])
     for i in range(n_frames):
         print(str(i) + "/" + str(n_frames))
-        mod_matrix = function(i, n_frames)
+        mod_matrix = function(network, i, n_frames)
         after_coords = get_spectral_coordinates(
             nx.laplacian_matrix(network).todense(),
             mod_matrix,

@@ -11,12 +11,12 @@ Implementation of a generic Genetic Algorithm optimizer
 for optimal laplacian mass tuning.
 """
 # GA parameters
-population_size = 100
+population_size = 1000
 elite_rate = 0.10
 random_rate = 0.10
 mutation_rate = 0.5
 mutation_part = 0.3  # which percentage of genes mutate?
-max_iterations = 100
+max_iterations = 500
 precision = 0.001
 
 value_resolution = 10
@@ -92,18 +92,14 @@ def new_generation(old_gen,
     return new_gen
 
 
-def fitness(individual,
+def fitness(masses,
             network,
             target_coordinates,
-            value_resolution,
-            max_mass,
-            min_mass,
             dim):
     '''
     Defines the fitness score for a given individual.
     '''
-    masses = (max_mass - min_mass) * (individual / value_resolution) + min_mass
-    mod_matrix = create_mod_matrix(masses)
+    mod_matrix = create_inverse_mod_matrix(masses)
     guess_coordinates = get_spectral_coordinates(
         nx.laplacian_matrix(network).todense(),
         mod_matrix,
@@ -112,35 +108,37 @@ def fitness(individual,
                             target_coordinates.values)
 
 
-def new_fitness(individual,
+def new_fitness(masses,
                 network,
                 target_coordinates,
-                value_resolution,
-                max_mass,
-                min_mass,
                 dim):
     '''
     Fitness with new possible variation of laplacian
     '''
-    masses = (max_mass - min_mass) * (individual / value_resolution) + min_mass
     laplacian = create_customized_laplacian(network, masses)
     guess_coordinates = get_spectral_coordinates(laplacian, dim=dim)
     return rmsd.kabsch_rmsd(guess_coordinates.values,
                             target_coordinates.values)
 
 
-def new_fitness_v2(individual,
+def new_fitness_v2(masses,
                    network,
                    target_coordinates,
-                   value_resolution,
-                   max_mass,
-                   min_mass,
                    dim):
     '''
     Fitness with new possible variation (v2) of laplacian
     '''
-    masses = (max_mass - min_mass) * (individual / value_resolution) + min_mass
     laplacian = create_customized_laplacian_v2(network, masses)
+    guess_coordinates = get_spectral_coordinates(laplacian, dim=dim)
+    return rmsd.kabsch_rmsd(guess_coordinates.values,
+                            target_coordinates.values)
+
+
+def fitness_v3(masses,
+               network,
+               target_coordinates,
+               dim):
+    laplacian = create_weighted_laplacian(network, masses)
     guess_coordinates = get_spectral_coordinates(laplacian, dim=dim)
     return rmsd.kabsch_rmsd(guess_coordinates.values,
                             target_coordinates.values)
@@ -148,7 +146,8 @@ def new_fitness_v2(individual,
 
 def genetic_algorithm(G_tupla,
                       dim,
-                      fitness,
+                      n_items="nodes",
+                      fitness=new_fitness,
                       value_resolution=value_resolution,
                       min_mass=min_mass,
                       max_mass=max_mass,
@@ -165,21 +164,24 @@ def genetic_algorithm(G_tupla,
     '''
     G = G_tupla[0]
     target_coordinates = G_tupla[1]
-    population = generate_random_population(len(G.nodes()),
-                                            population_size,
-                                            value_resolution)
-    
+    if n_items == "nodes":
+        population = generate_random_population(len(G.nodes()),
+                                                population_size,
+                                                value_resolution)
+    else:
+        population = generate_random_population(len(G.edges()),
+                                                population_size,
+                                                value_resolution)
     progression = []
     for i in range(max_iterations):
         print("Generation: {}/{}".format(i,max_iterations))
         score = []
         for individual in population:
-            score.append(fitness(individual,
+            masses = ((max_mass - min_mass) * (individual / value_resolution)
+                      + min_mass)
+            score.append(fitness(masses,
                                  G,
                                  target_coordinates,
-                                 value_resolution,
-                                 min_mass,
-                                 max_mass,
                                  dim))
         performance = list(zip(population, score))
         performance = sorted(performance, key=lambda a:a[1])
@@ -194,4 +196,5 @@ def genetic_algorithm(G_tupla,
                                         mutation_part,
                                         population_size, population_half,
                                         value_resolution)
-    return progression, performance[0][0]
+    return ((max_mass - min_mass) * (performance[0][0] / value_resolution) +
+            min_mass)
