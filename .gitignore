@@ -1,3 +1,6 @@
+# .pdb files
+*.pdb
+
 # Images and videos
 *.jpg
 *.mp4
