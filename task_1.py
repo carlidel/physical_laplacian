@@ -9,12 +9,12 @@ import pickle
 
 # Batch on basic fitness (old style)
 
-n_iterations = 12
+n_iterations = 3
 value_resolution = 100
 min_mass = 1
 max_mass = 100
 
-# 1D line (n = 10)
+"""# 1D line (n = 10)
 print("1D line 10")
 
 N = 10
@@ -102,7 +102,7 @@ obtained_weights, scores = big_test_sa(network_tupla, 2, "nodes", sa.fitness,
                                        max_mass=max_mass)
 with open('batch/lattice_10_f0_sa.pkl', 'wb') as f:
     pickle.dump([obtained_weights, scores], f)
-
+"""
 # 2D lattice (n = 20)
 print("2D lattice 20")
 

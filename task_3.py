@@ -9,12 +9,12 @@ import pickle
 
 # Batch on v2 fitness (I CAN DO EVERYTHING)
 
-n_iterations = 12
+n_iterations = 3
 value_resolution = 100
 min_mass = 1
 max_mass = 100
 
-# 1D line (n = 10)
+"""# 1D line (n = 10)
 print("1D line 10")
 
 N = 10
@@ -105,7 +105,7 @@ with open('batch/lattice_10_f2_sa.pkl', 'wb') as f:
 
 # 2D lattice (n = 20)
 print("2D lattice 20")
-
+"""
 N = 20
 network_tupla = create_lattice(N, N)
 
