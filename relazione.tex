@@ -22,6 +22,8 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 
+\usepackage{listings}
+
 \newtheorem{lemma}{Lemma}[section]
 \newtheorem{theorem}{Teorema}[section]
 \newtheorem{proof}{Dimostrazione}[section]
@@ -123,7 +125,7 @@ Per semplificare ulteriormente la notazione, si può lavorare con la varianza im
 
 Facendo ricorso al Lemma~\ref{lem:laplaciano_quadratico}, si può riscrivere l'energia nella forma matriciale:
 \begin{equation}
-    \E(\vb(x)) = \vb{x}^T L\vb{x} = \sum_{\langle i,j\rangle\in \E} w_{ij}\cdot {(x_i - x_j)}^2
+    \E(\vb{x}) = \vb{x}^T L\vb{x} = \sum_{\langle i,j\rangle\in \E} w_{ij}\cdot {(x_i - x_j)}^2
 \end{equation}
 A questo punto, è possibile descrivere il layout unidimensionale \(\vb{x}\) come la soluzione del problema di minimizzazione vincolato:
 \begin{align}
@@ -181,28 +183,171 @@ Si ha da evidenziare che \(D^{-1} A\) è anche nota come \textit{Transition Matr
 
 \subsection{Alcuni esempi}\label{subsec:drawing_examples}
 
-\section{Perturbazioni e modifiche del Laplaciano}\label{sec:perturbazioni}
+\section{Ricostruzione di un grafo tramite perturbazioni del Laplaciano}\label{sec:perturbazioni}
 
-\subsection{Perturbazione con Degree Matrix modificata}
+Dato un grafo reale i cui nodi hanno una collocazione definita nello spazio tridimensionale, si desidera definire una procedura algoritmica di ricostruzione che permetta, tramite modifiche o perturbazioni al laplaciano originale del grafo, di ottenere uno Spectral Drawing che corrisponda alla struttura spaziale vera o che, quantomeno, assomigli ad essa secondo misure standard nella letteratura di analisi di strutture proteiche (e.g.~misura della RMSD tra i due grafi dopo aver applicato l'algoritmo di Kabsch).
 
-\subsection{Perturbazione tramite assegnazione pesi ai link}
+In questa sezione si analizzano e commentano 3 diversi approcci di modifica della matrice laplaciana, insieme a 2 diversi classificatori euristici utilizzati per ricercare le perturbazioni `migliori', in quanto il problema di ottimizzazione non presenta soluzioni computabili in maniera non euristica.
+
+\subsection{Metodi di perturbazione del laplaciano}
+
+\subsubsection{Perturbazione con Degree Matrix modificata}\label{subsec:sofia}
+
+In~\cite{tesi_sofia_farina} si esegue una reinterpretazione fisica dell'intero problema del disegno di un grafo, a partire dalla natura stessa del metodo dello Spectral Drawing, basato sulla minimizzazione di una energia data da quello che può essere ridefinito come un sistema di masse e molle.
+
+Partendo dall'equazione agli autovalori del laplaciano del grafo
+\begin{equation}
+    L\vb{x} = \lambda\vb{x}
+\end{equation}
+e definendo poi l'equazione del moto di un ipotetico sistema fisico in cui i nodi del grafo hanno una loro massa caratteristica
+\begin{equation}
+    L\vb{x} = M \ddot{\vb{x}}
+\end{equation}
+dove \(M\) è una matrice diagonale \(n\times n\) dove i valori in diagonale sono le masse caratteristiche dei nodi del grafo (una sorta di Degree Matrix modificata), si può definire una nuova equazione agli autovalori:
+\begin{equation}
+    M^{-1}L\vb{x} = \ddot{\vb{x}}
+\end{equation}
+Il problema di perturbazione diventa quindi trovare una matrice diagonale \(M\) tale che le soluzioni non banali dell'equazione
+\begin{equation}
+    M^{-1}L\vb{x} = 0
+\end{equation}
+corrispondano alle coordinate `vere' del grafo tridimensionale (la soluzione banale non subisce modifiche dall'introduzione della matrice \(M\)).
+
+\subsubsection{Perturbazione tramite modifica dei link tramite funzione delle masse dei nodi}
+
+Volendo mantenere inalterata la struttura del laplaciano e, allo stesso tempo, ragionare in termini di `massa dei nodi', si propone il seguente possibile approccio di perturbazione.
+
+Si assegna ad ogni nodo del grafo un valore di massa \(m_1, m_2, \dots, m_n\).
+Successivamente, si modificano i pesi di ogni link del grafo secondo una data funzione nella forma \(w_{ij} = w(m_i, m_j)\) e, da qui, si esegue lo Spectral Drawing del nuovo grafo pesato ottenuto, per poi verificarne la verosimiglianza con il grafo originale.
+In questa maniera, le caratteristiche matematiche del laplaciano vengono mantenute intatte e, allo stesso tempo, si lavora con il problema di dover solamente assegnare dei valori di massa ai nodi del grafo.
+
+\subsubsection{Perturbazione tramite modifica diretta dei singoli link}
+
+Volendo invece seguire un approccio più libero, si può andare a modificare singolarmente ed indipendentemente i singoli pesi dei vari link del grafo, senza mantenere relazioni di corrispondenza particolari rispetto ad eventuali caratteristiche dei nodi che vanno a connettere.
+Si esegue successivamente lo Spectral Drawing del grafo coi pesi dei vari link modificati.
+
+Per quanto questo approccio presenti la massima versatilità per l'ottenere una ricostruzione spaziale perfetta di un grafo, il maggior numero di variabili libere da gestire rende inevitabilmente molto più critico e lungo l'utilizzo di algoritmi euristici per la ricerca della soluzione migliore.
 
 \subsection{Classificatori utilizzati}
 
+In~\cite{tesi_sofia_farina}, per trovare euristicamente i valori migliori di massa da assegnare alla matrice perturbativa \(D\) (sottosezione~\ref{subsec:sofia}), viene utilizzato come classificatore un Genetic Algorithm (GA).
+Oltre a riutilizzare tale classificatore, nel presente lavoro si fa uso anche di un Simulated Annealing (SA) e ne si comparano le performance con il GA.
+Si analizzano ora in breve le caratteristiche principali dei due classificatori.
+
 \subsubsection{Genetic Algorithm}
+
+Il GA parte definendo una popolazione di partenza di possibili soluzioni numeriche, scelte in maniera totalmente randomica entro intervalli di valori stabiliti.
+Tale popolazione di partenza viene detta la prima \textit{generazione} di partenza dell'algoritmo e le singole soluzioni nella popolazione vengono chiamate \textit{individui}.
+
+Ad ogni iterazione, l'algoritmo calcola il punteggio di fitness di ogni individuo della generazione, inteso come valore numerico indicante la performance dei valori numerici dell'individuo nel risolvere il problema (in questo contesto, avere il valore minimo di RMSD).
+Successivamente vengono selezionati gli individui con il punteggio migliore e ne viene modificato il `genoma' numerico della soluzione tramite ricombinazioni o mutazioni casuali, fino ad andare a costruire la genereazione da utilizzare per la successiva iterazione dell'algoritmo.
+
+Le tecniche standard di costruzione di una nuova generazione sono le seguenti:
+\begin{enumerate}
+    \item \textbf{Crossover,} vengono scelti due individui a caso della popolazione precedente e, scambiando tra i due parte dei valori numerici, vengono generati due nuovi individui.
+    \item \textbf{Mutazione,} si fissa una probabilità relativamente bassa (e.g.~\(1\% \)) che un valore numerico di un individuo venga mutato randomicamente.
+    \item \textbf{Élite,} vengono selezionati e lasciati inalterati i primi tot individui che hanno ottenuto il punteggio migliore.
+    \item \textbf{Elementi esterni,} per evitare un equivalente numerico di endogamia, vengono introdotti ad ogni iterazione nuovi individui i cui valori sono generati randomicamente come nella generazione di partenza. Ciò assicura una costante introduzione di nuovi valori numerici nel pool di soluzioni sotto esame.
+\end{enumerate}
 
 \subsubsection{Simulated Annealing}
 
+L'SA è una tecnica molto utilizzata per risolvere i problemi di ottimizzazione. Laddove il GA viene indicato per esplorare problemi di natura combinatoria, l'SA viene indicata in particolare per ricercare minimi globali in problemi caratterizzati dalla presenza di più minimi globali.
+
+L'algoritmo si ispira ai processi di \textit{Annealing} (ricottura) in metallurgia, usati per ricristallizzare i metalli. Dopo essere stati fusi, i metalli vengono fatti rafreddare lentamente abbassando progressivamente la temperatura per permettere agli atomi di raggiungere la configurazione di minima energia (corrispondente alla struttura di un cristallo regolare).
+
+L'idea è di esplorare con continuità lo spazio delle esplorazioni accettando, con una certa probabilità dipendente da una temperatura decrescente nel tempo, soluzioni `errate' per esplorare lo spazio senza cadere subito in minimi locali.
+Al contrario quindi di algoritmi esplorativi sequenziali che si limitano a seguire esclusivamente il gradiente, qui si introduce una componente random che permette di superare i minimi locali.
+
+Definendo come energia da minimizzare sempre il valore di'RMSD del grafo disegnato, abbiamo il seguente algoritmo schematizzato:
+\begin{enumerate}
+    \item Si parte da una configurazione iniziale \(Y(0)\) ed una temperatura di partenza \(T_0\).
+    \item Tramite una piccola perturbazione casuale, si genera una nuova soluzione \(Y(i + 1)\) vicina ad \(Y(i)\) nello spazio delle soluzioni.
+    \item Si valuta la differenza di performance in termini di RMSD tra le due configurazioni
+    \begin{equation}
+        \Delta \E = J(Y(i)) - J(Y(i + 1))
+    \end{equation}
+    \item Sulla base del valore di \(\Delta \E \), si valuta se accettare o rigettare la nuova soluzione:
+    \begin{itemize}
+        \item Se \(\Delta \E \leq 0\), si accetta la nuova soluzione in quanto avente una performance migliore nel minimizzare l'energia.
+        \item Altrimenti, se \(\Delta \E > 0\), si accetta la nuova soluzione con una probabilità esponenziale (distribuzione di Boltzmann\footnote{Dove si omette la \(k\) di Boltzmann.}):
+        \begin{equation}
+            P_i(\Delta\E) = \exp{-\frac{\Delta\E}{T(i)}}
+        \end{equation} 
+    \end{itemize}
+    \item Si abbassa la temperatura da \(T(i) \rightarrow T(i + 1) = r\cdot T(i)\) con \(0 < r < 1\)
+    \begin{itemize}
+        \item Se \(T(i + 1) > T_{min}\) si torna al punto 2.
+        \item Altrimenti l'algoritmo termina e si ha la soluzione finale.    
+    \end{itemize}
+\end{enumerate}
+La discesa di temperatura descritta al punto 5 è uno dei metodi più usati in letteratura nel Simulated Annealing, nel persente lavoro tuttavia si è optato per una discesa logaritmica descritta dal metodo di Numpy \lstinline{numpy.logspace}.
+
 \section{Applicazione a Toy Models}\label{sec:applicazione}
+
+Per testare in prima istanza i vari metodi di perturbazione e gli algoritmi di ricostruzione tramite perturbazione del laplaciano, si è operato su dei Toy Models in 1, 2 e 3 dimensioni.
+Rispettivamente, si è operato su dei Path Graph di diversa lunghezza, dei lattici 2D quadrati di lato diverso e su grafi cubici di lato diverso.
+
+Per ogni grafo si è tentata la ricostruzione delle coordinate spaziali facendo uso dei tre metodi descritti in Sezione~\ref{sec:perturbazioni} ed usando per ciascuno entrambi i classificatori, in modo da stabilire quale sia il meglio indicato in generale per questa finalità.
+
+Per i grafi 1D ed i due grafi 2D più piccoli sono state compiute 12 esecuzioni di ciascuna combinazione di metodo di perturbazione ed algoritmo ottimizzatore, dimodo da verificare la consistenza dei risultati ed accertarsi che un eventuale buon risultato abbia un minimo di consistenza nel comparire, nonostante la natura prettamente euristica degli algoritmi usati. Per il grafo 2D più grande ed il grafo 3D sono state compiute solo 3 esecuzioni di ciascuna combinazione a causa di limitazioni in termini di tempo di calcolo.
+
+Per ogni grafo e per ogni metodo di perturbazione si è operato assegnando valori di massa interi compresi nell'intervallo \([1, 100]\), ciò permette agli algoritmi di ottimizzazione di avere uno spazio di lavoro sufficientemente limitato. In eventuali analisi future sarà tuttavia necessario valutare se ampliare o meno tale spazio di lavoro.
+
+I parametri impostati per le analisi con GA sono riportati in Tabella~\ref{tab:ga}, mentre i parametri impostati per l'SA sono riportati in Tabella~\ref{tab:sa}.
+
+\begin{table}[!htp]
+    \centering
+    \begin{tabular}{lc}
+        \toprule
+        Parametro & Valore \\
+        \midrule
+        Dimensione popolazione & 1000 \\
+        Numero iterazioni & 500 \\
+        Percentuale élite selezionata & 10\% \\
+        Percentuale crossover & 80\% \\
+        Percentuale nuovi individui & 10\% \\
+        Probabilità di mutazione & 1\% \\ 
+        \bottomrule
+    \end{tabular}
+    \caption{Parametri utilizzati per Genetic Algorithm.}\label{tab:ga}
+\end{table}
+
+\begin{table}[!htp]
+    \centering
+    \begin{tabular}{lc}
+        \toprule
+        Parametro & Valore \\
+        \midrule
+        \(T\) di partenza & \(10^{-2}\) \\
+        \(T\) di arrivo & \(10^{-6}\) \\
+        Numero iterazioni & \(5 \cdot 10^{5}\) \\
+        \bottomrule
+    \end{tabular}
+    \caption{Parametri utilizzati per Simulated Annealing.}\label{tab:sa}
+\end{table}
 
 \subsection{Toy Models 1D}
 
+\subsubsection{Path Graph \((n = 10)\)}
+
+\subsubsection{Path Graph \((n = 25)\)}
+
 \subsection{Toy Models 2D}
+
+\subsubsection{Lattice \((l = 5, n = 25)\)}
+
+\subsubsection{Lattice \((l = 10, n = 100)\)}
+
+\subsubsection{Lattice \((l = 20, n = 400)\)}
 
 \subsection{Toy Models 3D}
 
-\printbibliography
+\subsubsection{Cubo \((l = 5, n = 125)\)}
 
+\subsubsection{Cubo \((l = 7, n = 343)\)}
+
+\printbibliography
 \appendix
 \section{Soluzione al Constrained Quadratic Optimization Problem}\label{sec:soluzione_constrained}
 In questa appendice si analizza una particolare tipologia di problemi di ottimizzazione, la cui soluzione è un autovettore generalizzato.
