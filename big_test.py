@@ -67,7 +67,7 @@ def big_test_sa(network_tupla,
     scores = []
     obtained_weights = []
     for i in range(n_simulations):
-        print("iteration: " + str(i) + "/" + str(n_iterations))
+        print("iteration: " + str(i) + "/" + str(n_simulations))
         result = sa.simulated_annealing(network_tupla,
                                         dim,
                                         n_items,
