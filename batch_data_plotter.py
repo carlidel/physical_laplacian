@@ -378,14 +378,14 @@ line_10_f2_sa = (obtained_weights, scores)
 #%%
 print_score_block([line_10_f0_ga, line_10_f0_sa, line_10_f1_ga,
                    line_10_f1_sa, line_10_f2_ga, line_10_f2_sa],
-                  "", "img/line_10.png")
+                  "", "img/line_10.jpg")
 
-plot_1D_masses(line_10_f0_ga, "", "img/line_10_f0_ga.png")
-plot_1D_masses(line_10_f0_sa, "", "img/line_10_f0_sa.png")
-plot_1D_masses(line_10_f1_ga, "", "img/line_10_f1_ga.png")
-plot_1D_masses(line_10_f1_sa, "", "img/line_10_f1_sa.png")
-plot_1D_masses(line_10_f2_ga, "", "img/line_10_f2_ga.png", True)
-plot_1D_masses(line_10_f2_sa, "", "img/line_10_f2_sa.png", True)
+plot_1D_masses(line_10_f0_ga, "", "img/line_10_f0_ga.jpg")
+plot_1D_masses(line_10_f0_sa, "", "img/line_10_f0_sa.jpg")
+plot_1D_masses(line_10_f1_ga, "", "img/line_10_f1_ga.jpg")
+plot_1D_masses(line_10_f1_sa, "", "img/line_10_f1_sa.jpg")
+plot_1D_masses(line_10_f2_ga, "", "img/line_10_f2_ga.jpg", True)
+plot_1D_masses(line_10_f2_sa, "", "img/line_10_f2_sa.jpg", True)
 
 
 #%%
@@ -419,14 +419,14 @@ line_25_f2_sa = (obtained_weights, scores)
 
 print_score_block([line_25_f0_ga, line_25_f0_sa, line_25_f1_ga,
                    line_25_f1_sa, line_25_f2_ga, line_25_f2_sa],
-                  "", "img/line_25.png")
+                  "", "img/line_25.jpg")
 
-plot_1D_masses(line_25_f0_ga, "", "img/line_25_f0_ga.png")
-plot_1D_masses(line_25_f0_sa, "", "img/line_25_f0_sa.png")
-plot_1D_masses(line_25_f1_ga, "", "img/line_25_f1_ga.png")
-plot_1D_masses(line_25_f1_sa, "", "img/line_25_f1_sa.png")
-plot_1D_masses(line_25_f2_ga, "", "img/line_25_f2_ga.png", True)
-plot_1D_masses(line_25_f2_sa, "", "img/line_25_f2_sa.png", True)
+plot_1D_masses(line_25_f0_ga, "", "img/line_25_f0_ga.jpg")
+plot_1D_masses(line_25_f0_sa, "", "img/line_25_f0_sa.jpg")
+plot_1D_masses(line_25_f1_ga, "", "img/line_25_f1_ga.jpg")
+plot_1D_masses(line_25_f1_sa, "", "img/line_25_f1_sa.jpg")
+plot_1D_masses(line_25_f2_ga, "", "img/line_25_f2_ga.jpg", True)
+plot_1D_masses(line_25_f2_sa, "", "img/line_25_f2_sa.jpg", True)
 
 #%%
 # Lattice 5
@@ -459,40 +459,40 @@ lattice_5_f2_sa = (obtained_weights, scores)
 
 print_score_block([lattice_5_f0_ga, lattice_5_f0_sa, lattice_5_f1_ga,
                    lattice_5_f1_sa, lattice_5_f2_ga, lattice_5_f2_sa],
-                  "", "img/lattice_5.png")
+                  "", "img/lattice_5.jpg")
 
-plot_2D_masses(lattice_5_f0_ga, "", "img/lattice_5_f0_ga.png")
-plot_2D_masses(lattice_5_f0_ga, "", "img/lattice_5_f0_ga_average.png", True)
-plot_2D_masses(lattice_5_f1_ga, "", "img/lattice_5_f1_ga.png")
-plot_2D_masses(lattice_5_f1_ga, "", "img/lattice_5_f1_ga_average.png", True)
-plot_2D_masses(lattice_5_f0_sa, "", "img/lattice_5_f0_sa.png")
-plot_2D_masses(lattice_5_f0_sa, "", "img/lattice_5_f0_sa_average.png", True)
-plot_2D_masses(lattice_5_f1_sa, "", "img/lattice_5_f1_sa.png")
-plot_2D_masses(lattice_5_f1_sa, "", "img/lattice_5_f1_sa_average.png", True)
+plot_2D_masses(lattice_5_f0_ga, "", "img/lattice_5_f0_ga.jpg")
+plot_2D_masses(lattice_5_f0_ga, "", "img/lattice_5_f0_ga_average.jpg", True)
+plot_2D_masses(lattice_5_f1_ga, "", "img/lattice_5_f1_ga.jpg")
+plot_2D_masses(lattice_5_f1_ga, "", "img/lattice_5_f1_ga_average.jpg", True)
+plot_2D_masses(lattice_5_f0_sa, "", "img/lattice_5_f0_sa.jpg")
+plot_2D_masses(lattice_5_f0_sa, "", "img/lattice_5_f0_sa_average.jpg", True)
+plot_2D_masses(lattice_5_f1_sa, "", "img/lattice_5_f1_sa.jpg")
+plot_2D_masses(lattice_5_f1_sa, "", "img/lattice_5_f1_sa_average.jpg", True)
 
 #%%
 G = nt.create_lattice(5, 5)[0]
-plot_2D_weights(lattice_5_f2_ga, G, "", "img/lattice_5_f2_ga.png")
-plot_2D_weights(lattice_5_f2_sa, G, "", "img/lattice_5_f2_sa.png")
+plot_2D_weights(lattice_5_f2_ga, G, "", "img/lattice_5_f2_ga.jpg")
+plot_2D_weights(lattice_5_f2_sa, G, "", "img/lattice_5_f2_sa.jpg")
 plot_2D_weights(lattice_5_f2_ga, G, "",
-                "img/lattice_5_f2_ga_average.png", True)
+                "img/lattice_5_f2_ga_average.jpg", True)
 plot_2D_weights(lattice_5_f2_sa, G, "",
-                "img/lattice_5_f2_sa_average.png", True)
+                "img/lattice_5_f2_sa_average.jpg", True)
 
 #%%
 G = nt.create_lattice(5, 5)
 plot_2D_comparison(lattice_5_f1_ga, G, "",
-                   "img/lattice_5_f1_ga_comparison.png", "f1")
+                   "img/lattice_5_f1_ga_comparison.jpg", "f1")
 plot_2D_comparison(lattice_5_f1_sa, G, "",
-                   "img/lattice_5_f1_sa_comparison.png", "f1")
+                   "img/lattice_5_f1_sa_comparison.jpg", "f1")
 plot_2D_comparison(lattice_5_f2_ga, G, "",
-                   "img/lattice_5_f2_ga_comparison.png", "f2")
+                   "img/lattice_5_f2_ga_comparison.jpg", "f2")
 plot_2D_comparison(lattice_5_f2_sa, G, "",
-                   "img/lattice_5_f2_sa_comparison.png", "f2")
+                   "img/lattice_5_f2_sa_comparison.jpg", "f2")
 plot_2D_comparison(lattice_5_f0_ga, G, "",
-                   "img/lattice_5_f0_ga_comparison.png", "f0")
+                   "img/lattice_5_f0_ga_comparison.jpg", "f0")
 plot_2D_comparison(lattice_5_f0_sa, G, "",
-                   "img/lattice_5_f0_sa_comparison.png", "f0")
+                   "img/lattice_5_f0_sa_comparison.jpg", "f0")
 
 #%%
 # Lattice 10
@@ -525,41 +525,41 @@ lattice_10_f2_sa = (obtained_weights, scores)
 
 print_score_block([lattice_10_f0_ga, lattice_10_f0_sa, lattice_10_f1_ga,
                    lattice_10_f1_sa, lattice_10_f2_ga, lattice_10_f2_sa],
-                  "", "img/lattice_10.png")
+                  "", "img/lattice_10.jpg")
 G = nt.create_lattice(10, 10)[0]
 
-plot_2D_masses(lattice_10_f0_ga, "", "img/lattice_10_f0_ga.png")
-plot_2D_masses(lattice_10_f0_ga, "", "img/lattice_10_f0_ga_average.png", True)
-plot_2D_masses(lattice_10_f1_ga, "", "img/lattice_10_f1_ga.png")
-plot_2D_masses(lattice_10_f1_ga, "", "img/lattice_10_f1_ga_average.png", True)
-plot_2D_masses(lattice_10_f0_sa, "", "img/lattice_10_f0_sa.png")
-plot_2D_masses(lattice_10_f0_sa, "", "img/lattice_10_f0_sa_average.png", True)
-plot_2D_masses(lattice_10_f1_sa, "", "img/lattice_10_f1_sa.png")
-plot_2D_masses(lattice_10_f1_sa, "", "img/lattice_10_f1_sa_average.png", True)
+plot_2D_masses(lattice_10_f0_ga, "", "img/lattice_10_f0_ga.jpg")
+plot_2D_masses(lattice_10_f0_ga, "", "img/lattice_10_f0_ga_average.jpg", True)
+plot_2D_masses(lattice_10_f1_ga, "", "img/lattice_10_f1_ga.jpg")
+plot_2D_masses(lattice_10_f1_ga, "", "img/lattice_10_f1_ga_average.jpg", True)
+plot_2D_masses(lattice_10_f0_sa, "", "img/lattice_10_f0_sa.jpg")
+plot_2D_masses(lattice_10_f0_sa, "", "img/lattice_10_f0_sa_average.jpg", True)
+plot_2D_masses(lattice_10_f1_sa, "", "img/lattice_10_f1_sa.jpg")
+plot_2D_masses(lattice_10_f1_sa, "", "img/lattice_10_f1_sa_average.jpg", True)
 
 #%%
 G = nt.create_lattice(10, 10)[0]
-plot_2D_weights(lattice_10_f2_ga, G, "", "img/lattice_10_f2_ga.png")
-plot_2D_weights(lattice_10_f2_sa, G, "", "img/lattice_10_f2_sa.png")
+plot_2D_weights(lattice_10_f2_ga, G, "", "img/lattice_10_f2_ga.jpg")
+plot_2D_weights(lattice_10_f2_sa, G, "", "img/lattice_10_f2_sa.jpg")
 plot_2D_weights(lattice_10_f2_ga, G, "",
-                "img/lattice_10_f2_ga_average.png", True)
+                "img/lattice_10_f2_ga_average.jpg", True)
 plot_2D_weights(lattice_10_f2_sa, G, "",
-                "img/lattice_10_f2_sa_average.png", True)
+                "img/lattice_10_f2_sa_average.jpg", True)
 
 #%%
 G = nt.create_lattice(10, 10)
 plot_2D_comparison(lattice_10_f1_ga, G, "",
-                   "img/lattice_10_f1_ga_comparison.png", "f1")
+                   "img/lattice_10_f1_ga_comparison.jpg", "f1")
 plot_2D_comparison(lattice_10_f1_sa, G, "",
-                   "img/lattice_10_f1_sa_comparison.png", "f1")
+                   "img/lattice_10_f1_sa_comparison.jpg", "f1")
 plot_2D_comparison(lattice_10_f2_ga, G, "",
-                   "img/lattice_10_f2_ga_comparison.png", "f2")
+                   "img/lattice_10_f2_ga_comparison.jpg", "f2")
 plot_2D_comparison(lattice_10_f2_sa, G, "",
-                   "img/lattice_10_f2_sa_comparison.png", "f2")
+                   "img/lattice_10_f2_sa_comparison.jpg", "f2")
 plot_2D_comparison(lattice_10_f0_ga, G, "",
-                   "img/lattice_10_f0_ga_comparison.png", "f0")
+                   "img/lattice_10_f0_ga_comparison.jpg", "f0")
 plot_2D_comparison(lattice_10_f0_sa, G, "",
-                   "img/lattice_10_f0_sa_comparison.png", "f0")
+                   "img/lattice_10_f0_sa_comparison.jpg", "f0")
 
 #%%
 # Lattice 20
@@ -591,32 +591,32 @@ lattice_20_f2_sa = (obtained_weights, scores)
 #%%
 
 print_score_single([lattice_20_f0_ga, lattice_20_f0_sa, lattice_20_f1_ga,
-                   lattice_20_f1_sa, lattice_20_f2_ga, lattice_20_f2_sa], "", "img/lattice_20.png")
+                   lattice_20_f1_sa, lattice_20_f2_ga, lattice_20_f2_sa], "", "img/lattice_20.jpg")
 
-plot_2D_masses(lattice_20_f0_ga, "", "img/lattice_20_f0_ga.png")
-plot_2D_masses(lattice_20_f1_ga, "", "img/lattice_20_f1_ga.png")
-plot_2D_masses(lattice_20_f0_sa, "", "img/lattice_20_f0_sa.png")
-plot_2D_masses(lattice_20_f1_sa, "", "img/lattice_20_f1_sa.png")
+plot_2D_masses(lattice_20_f0_ga, "", "img/lattice_20_f0_ga.jpg")
+plot_2D_masses(lattice_20_f1_ga, "", "img/lattice_20_f1_ga.jpg")
+plot_2D_masses(lattice_20_f0_sa, "", "img/lattice_20_f0_sa.jpg")
+plot_2D_masses(lattice_20_f1_sa, "", "img/lattice_20_f1_sa.jpg")
 
 #%%
 G = nt.create_lattice(20, 20)[0]
-plot_2D_weights(lattice_20_f2_ga, G, "", "img/lattice_20_f2_ga.png")
-plot_2D_weights(lattice_20_f2_sa, G, "", "img/lattice_20_f2_sa.png")
+plot_2D_weights(lattice_20_f2_ga, G, "", "img/lattice_20_f2_ga.jpg")
+plot_2D_weights(lattice_20_f2_sa, G, "", "img/lattice_20_f2_sa.jpg")
 
 #%%
 G = nt.create_lattice(20, 20)
 plot_2D_comparison(lattice_20_f1_ga, G, "",
-                   "img/lattice_20_f1_ga_comparison.png", "f1")
+                   "img/lattice_20_f1_ga_comparison.jpg", "f1")
 plot_2D_comparison(lattice_20_f1_sa, G, "",
-                   "img/lattice_20_f1_sa_comparison.png", "f1")
+                   "img/lattice_20_f1_sa_comparison.jpg", "f1")
 plot_2D_comparison(lattice_20_f2_ga, G, "",
-                   "img/lattice_20_f2_ga_comparison.png", "f2")
+                   "img/lattice_20_f2_ga_comparison.jpg", "f2")
 plot_2D_comparison(lattice_20_f2_sa, G, "",
-                   "img/lattice_20_f2_sa_comparison.png", "f2")
+                   "img/lattice_20_f2_sa_comparison.jpg", "f2")
 plot_2D_comparison(lattice_20_f0_ga, G, "",
-                   "img/lattice_20_f0_ga_comparison.png", "f0")
+                   "img/lattice_20_f0_ga_comparison.jpg", "f0")
 plot_2D_comparison(lattice_20_f0_sa, G, "",
-                   "img/lattice_20_f0_sa_comparison.png", "f0")
+                   "img/lattice_20_f0_sa_comparison.jpg", "f0")
 
 
 #%%
@@ -650,20 +650,31 @@ cube_5_f2_sa = (obtained_weights, scores)
 
 print_score_single([cube_5_f0_ga, cube_5_f0_sa, cube_5_f1_ga,
                    cube_5_f1_sa, cube_5_f2_ga, cube_5_f2_sa],
-                  "", "img/cube_5.png")
+                  "", "img/cube_5.jpg")
 
 #%%
 G = nt.create_cube(5, 5, 5)[0]
 
-plot_3D_masses(cube_5_f0_ga, G, 5, "", "img/cube_5_f0_ga.png")
-plot_3D_masses(cube_5_f0_sa, G, 5, "", "img/cube_5_f0_sa.png")
-plot_3D_masses(cube_5_f1_ga, G, 5, "", "img/cube_5_f1_ga.png")
-plot_3D_masses(cube_5_f1_sa, G, 5, "", "img/cube_5_f1_sa.png")
+plot_3D_masses(cube_5_f0_ga, G, 5, "", "img/cube_5_f0_ga.jpg")
+plot_3D_masses(cube_5_f0_sa, G, 5, "", "img/cube_5_f0_sa.jpg")
+plot_3D_masses(cube_5_f1_ga, G, 5, "", "img/cube_5_f1_ga.jpg")
+plot_3D_masses(cube_5_f1_sa, G, 5, "", "img/cube_5_f1_sa.jpg")
 
 #%%
 G = nt.create_cube(5, 5, 5)[0]
-plot_3D_edges(cube_5_f2_ga, G, 5, "", "img/cube_5_f2_ga.png")
-plot_3D_edges(cube_5_f2_sa, G, 5, "", "img/cube_5_f2_sa.png")
+plot_3D_edges(cube_5_f2_ga, G, 5, "", "img/cube_5_f2_ga.jpg")
+plot_3D_edges(cube_5_f2_sa, G, 5, "", "img/cube_5_f2_sa.jpg")
+
+#%%
+G = nt.create_cube(5, 5, 5)[0]
+G_tupla = nt.create_cube(5, 5, 5)
+
+plot_3D_comparison(cube_5_f0_ga, G_tupla, "", "img/cube_5_f0_ga_comparison.jpg", method="f0")
+plot_3D_comparison(cube_5_f1_ga, G_tupla, "", "img/cube_5_f1_ga_comparison.jpg", method="f1")
+plot_3D_comparison(cube_5_f2_ga, G_tupla, "", "img/cube_5_f2_ga_comparison.jpg", method="f2")
+plot_3D_comparison(cube_5_f0_sa, G_tupla, "", "img/cube_5_f0_sa_comparison.jpg", method="f0")
+plot_3D_comparison(cube_5_f1_sa, G_tupla, "", "img/cube_5_f1_sa_comparison.jpg", method="f1")
+plot_3D_comparison(cube_5_f2_sa, G_tupla, "", "img/cube_5_f2_sa_comparison.jpg", method="f2")
 
 #%%
 G = nt.create_cube(5, 5, 5)[0]
@@ -726,19 +737,30 @@ cube_7_f2_sa = (obtained_weights, scores)
 
 print_score_single([cube_7_f0_ga, cube_7_f0_sa, cube_7_f1_ga,
                    cube_7_f1_sa, cube_7_f2_ga, cube_7_f2_sa],
-                  "", "img/cube_7.png")
+                  "", "img/cube_7.jpg")
 #%%
 G = nt.create_cube(7, 7, 7)[0]
 
-plot_3D_masses(cube_7_f0_ga, G, 7, "", "img/cube_7_f0_ga.png")
-plot_3D_masses(cube_7_f0_sa, G, 7, "", "img/cube_7_f0_sa.png")
-plot_3D_masses(cube_7_f1_ga, G, 7, "", "img/cube_7_f1_ga.png")
-plot_3D_masses(cube_7_f1_sa, G, 7, "", "img/cube_7_f1_sa.png")
+plot_3D_masses(cube_7_f0_ga, G, 7, "", "img/cube_7_f0_ga.jpg")
+plot_3D_masses(cube_7_f0_sa, G, 7, "", "img/cube_7_f0_sa.jpg")
+plot_3D_masses(cube_7_f1_ga, G, 7, "", "img/cube_7_f1_ga.jpg")
+plot_3D_masses(cube_7_f1_sa, G, 7, "", "img/cube_7_f1_sa.jpg")
 
 #%%
 G = nt.create_cube(7, 7, 7)[0]
-plot_3D_edges(cube_7_f2_ga, G, 7, "", "img/cube_7_f2_ga.png")
-plot_3D_edges(cube_7_f2_sa, G, 7, "", "img/cube_7_f2_sa.png")
+plot_3D_edges(cube_7_f2_ga, G, 7, "", "img/cube_7_f2_ga.jpg")
+plot_3D_edges(cube_7_f2_sa, G, 7, "", "img/cube_7_f2_sa.jpg")
+
+#%%
+G = nt.create_cube(7, 7, 7)[0]
+G_tupla = nt.create_cube(7, 7, 7)
+
+plot_3D_comparison(cube_7_f0_ga, G_tupla, "", "img/cube_7_f0_ga_comparison.jpg", method="f0")
+plot_3D_comparison(cube_7_f1_ga, G_tupla, "", "img/cube_7_f1_ga_comparison.jpg", method="f1")
+plot_3D_comparison(cube_7_f2_ga, G_tupla, "", "img/cube_7_f2_ga_comparison.jpg", method="f2")
+plot_3D_comparison(cube_7_f0_sa, G_tupla, "", "img/cube_7_f0_sa_comparison.jpg", method="f0")
+plot_3D_comparison(cube_7_f1_sa, G_tupla, "", "img/cube_7_f1_sa_comparison.jpg", method="f1")
+plot_3D_comparison(cube_7_f2_sa, G_tupla, "", "img/cube_7_f2_sa_comparison.jpg", method="f2")
 
 #%%
 G = nt.create_cube(7, 7, 7)[0]

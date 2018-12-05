@@ -23,6 +23,7 @@
 \usepackage{hyperref}
 
 \usepackage{listings}
+\usepackage{fullpage}
 
 \newtheorem{lemma}{Lemma}[section]
 \newtheorem{theorem}{Teorema}[section]
@@ -50,10 +51,6 @@
 \maketitle
 
 \tableofcontents
-
-\begin{abstract}
-    
-\end{abstract}
 
 \section{Nozioni di base}\label{sec:base}
 
@@ -191,7 +188,7 @@ In questa sezione si analizzano e commentano 3 diversi approcci di modifica dell
 
 \subsection{Metodi di perturbazione del laplaciano}
 
-\subsubsection{Perturbazione con Degree Matrix modificata}\label{subsec:sofia}
+\subsubsection{Perturbazione con Degree Matrix modificata \((f_0)\)}\label{subsec:sofia}
 
 In~\cite{tesi_sofia_farina} si esegue una reinterpretazione fisica dell'intero problema del disegno di un grafo, a partire dalla natura stessa del metodo dello Spectral Drawing, basato sulla minimizzazione di una energia data da quello che può essere ridefinito come un sistema di masse e molle.
 
@@ -213,7 +210,7 @@ Il problema di perturbazione diventa quindi trovare una matrice diagonale \(M\) 
 \end{equation}
 corrispondano alle coordinate `vere' del grafo tridimensionale (la soluzione banale non subisce modifiche dall'introduzione della matrice \(M\)).
 
-\subsubsection{Perturbazione tramite modifica dei link tramite funzione delle masse dei nodi}
+\subsubsection{Perturbazione tramite modifica dei link tramite funzione delle masse dei nodi \((f_1)\)}
 
 Volendo mantenere inalterata la struttura del laplaciano e, allo stesso tempo, ragionare in termini di `massa dei nodi', si propone il seguente possibile approccio di perturbazione.
 
@@ -221,7 +218,7 @@ Si assegna ad ogni nodo del grafo un valore di massa \(m_1, m_2, \dots, m_n\).
 Successivamente, si modificano i pesi di ogni link del grafo secondo una data funzione nella forma \(w_{ij} = w(m_i, m_j)\) e, da qui, si esegue lo Spectral Drawing del nuovo grafo pesato ottenuto, per poi verificarne la verosimiglianza con il grafo originale.
 In questa maniera, le caratteristiche matematiche del laplaciano vengono mantenute intatte e, allo stesso tempo, si lavora con il problema di dover solamente assegnare dei valori di massa ai nodi del grafo.
 
-\subsubsection{Perturbazione tramite modifica diretta dei singoli link}
+\subsubsection{Perturbazione tramite modifica diretta dei singoli link \((f_2)\)}
 
 Volendo invece seguire un approccio più libero, si può andare a modificare singolarmente ed indipendentemente i singoli pesi dei vari link del grafo, senza mantenere relazioni di corrispondenza particolari rispetto ad eventuali caratteristiche dei nodi che vanno a connettere.
 Si esegue successivamente lo Spectral Drawing del grafo coi pesi dei vari link modificati.
@@ -290,7 +287,7 @@ Rispettivamente, si è operato su dei Path Graph di diversa lunghezza, dei latti
 
 Per ogni grafo si è tentata la ricostruzione delle coordinate spaziali facendo uso dei tre metodi descritti in Sezione~\ref{sec:perturbazioni} ed usando per ciascuno entrambi i classificatori, in modo da stabilire quale sia il meglio indicato in generale per questa finalità.
 
-Per i grafi 1D ed i due grafi 2D più piccoli sono state compiute 12 esecuzioni di ciascuna combinazione di metodo di perturbazione ed algoritmo ottimizzatore, dimodo da verificare la consistenza dei risultati ed accertarsi che un eventuale buon risultato abbia un minimo di consistenza nel comparire, nonostante la natura prettamente euristica degli algoritmi usati. Per il grafo 2D più grande ed il grafo 3D sono state compiute solo 3 esecuzioni di ciascuna combinazione a causa di limitazioni in termini di tempo di calcolo.
+Per i grafi 1D ed i due grafi 2D più piccoli sono state compiute 12 esecuzioni di ciascuna combinazione di metodo di perturbazione ed algoritmo ottimizzatore, dimodo da verificare la consistenza dei risultati ed accertarsi che un eventuale buon risultato abbia un minimo di consistenza nel comparire, nonostante la natura prettamente euristica degli algoritmi usati. Per il grafo 2D più grande ed il grafo 3D è stata compiuta una singola esecuzione di ciascuna combinazione a causa di limitazioni in termini di tempo di calcolo.
 
 Per ogni grafo e per ogni metodo di perturbazione si è operato assegnando valori di massa interi compresi nell'intervallo \([1, 100]\), ciò permette agli algoritmi di ottimizzazione di avere uno spazio di lavoro sufficientemente limitato. In eventuali analisi future sarà tuttavia necessario valutare se ampliare o meno tale spazio di lavoro.
 
@@ -329,26 +326,488 @@ I parametri impostati per le analisi con GA sono riportati in Tabella~\ref{tab:g
 
 \subsection{Toy Models 1D}
 
+Si analizza per il caso unidimensionale un Path Graph i cui nodi sono equidistanziati spazialmente lungo l'asse \(x\).
+
 \subsubsection{Path Graph \((n = 10)\)}
+
+I punteggi di performance sono presentati in Figura~\ref{fig:line_10_performance}.
+È possibile osservare come, in generale, il Simulated Annealing ottenga in generale performance molto migliori e molto più consistenti rispetto al Genetic Algorithm.
+Questa maggiore consistenza nei risultati è anche possibile osservarla nei grafici in Figura~\ref{fig:line_10_data}, dove si osserva come la distribuzione di masse e pesi risulta molto meno fluttuante nei casi in cui si è fatto uso del Simulated Annealing.
+
+In generale si è osservata una performance migliore facendo uso dei metodi \(f_1\) ed \(f_2\), pur osservando buoni risultati anche per \(f_0\).
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/line_10.png}
+    \caption{Performance ottenute per un Path Graph unidimensionale di \(n=10\) nodi. Deviazione standard calcolata su 12 esecuzioni distinte.}\label{fig:line_10_performance}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_10_f0_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_10_f1_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_10_f2_ga.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_10_f0_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_10_f1_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_10_f2_sa.jpg}
+    }
+    \caption{Valori di masse e pesi ottenuti per un Path Graph di lunghezza \(n=10\). Deviazione standard calcolata su 12 esecuzioni distinte.}\label{fig:line_10_data}
+\end{figure}
 
 \subsubsection{Path Graph \((n = 25)\)}
 
+I punteggi di performance sono presentati in Figura~\ref{fig:line_25_performance}.
+Non si osservano variazioni nei risultati rispetto al caso più piccolo.
+Come si osserva anche dai grafici in Figura~\ref{fig:line_25_data}, le distribuzioni ottenute di masse e pesi sembra mantenere le stesse caratteristiche del caso più piccolo.
+
+Si confermano \(f_1\) ed \(f_2\) come metodi di perturbazione più efficaci.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/line_25.png}
+    \caption{Performance ottenute per un Path Graph unidimensionale di \(n=25\) nodi. Deviazione standard calcolata su 12 esecuzioni distinte.}\label{fig:line_25_performance}
+\end{figure}
+
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_25_f0_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_25_f1_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_25_f2_ga.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_25_f0_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_25_f1_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/line_25_f2_sa.jpg}
+    }
+    \caption{Valori di masse e pesi ottenuti per un Path Graph di lunghezza \(n=25\). Deviazione standard calcolata su 12 esecuzioni distinte.}\label{fig:line_25_data}
+\end{figure}
+
 \subsection{Toy Models 2D}
+
+SI analizza per il caso bidimensionale un lattice regolare quadrato disposto spazialmente sul piano \(xy\).
 
 \subsubsection{Lattice \((l = 5, n = 25)\)}
 
+I punteggi di performance sono presentati in Figura~\ref{fig:lattice_5_performance}.
+Si osserva come, già su due dimensioni, le performance dei metodi di perturbazione \(f_0\) ed \(f_1\) diminuiscano in maniera molto significativa rispetto ai casi monodimensionali.
+
+Sia osservando i punteggi di performance che i grafici di distribuzione di masse e pesi in in Figura~\ref{fig:lattice_5_data}, si può anche notare come il Simulated Annealing abbia sempre performance estremamente migliori e risultati più consistenti rispetto al Genetic Algorithm.
+
+Si riportano inoltre in Figura~\ref{fig:lattice_5_comparison} dei grafici riportanti l'effettivo risultato di ricostruzione spaziale del lattice.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/lattice_5.png}
+    \caption{Performance ottenute per un lattice quadrato bidimensionale di dimensione \(5 \times 5\). Deviazione standard calcolata su 12 esecuzioni distinte.}\label{fig:lattice_5_performance}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f0_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f1_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f2_ga.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f0_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f1_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f2_sa.jpg}
+    }
+    \caption{Valori di masse e pesi meglio performanti ottenuti per un lattice bidimensionale di lato \(l=5\).}\label{fig:lattice_5_data}
+\end{figure}
+
 \subsubsection{Lattice \((l = 10, n = 100)\)}
+
+I punteggi di performance sono riportati in Figura~\ref{fig:lattice_10_performance}, i grafici di distribuzione di masse e pesi sono riportati in Figura~\ref{fig:lattice_10_data}.
+Non si osservano differenze nei risultati rispetto al caso precedente più piccolo.
+
+Si riportano in Figura~\ref{fig:lattice_10_comparison} i grafici riportanti il risultato di ricostruzione del lattice.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/lattice_5.png}
+    \caption{Performance ottenute per un lattice quadrato bidimensionale di dimensione \(10 \times 10\). Deviazione standard calcolata su 12 esecuzioni distinte.}\label{fig:lattice_10_performance}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f0_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f1_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f2_ga.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f0_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f1_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f2_sa.jpg}
+    }
+    \caption{Valori di masse e pesi meglio performanti ottenuti per un lattice bidimensionale di lato \(l=10\).}\label{fig:lattice_10_data}
+\end{figure}
 
 \subsubsection{Lattice \((l = 20, n = 400)\)}
 
+I punteggi di performance sono riportati in Figura~\ref{fig:lattice_20_performance}, i grafici di distribuzione di masse e pesi sono riportati in Figura~\ref{fig:lattice_20_data}.
+Non si osservano differenze nei risultati rispetto al caso precedente più piccolo.
+
+Si riportano in Figura~\ref{fig:lattice_20_comparison} i grafici riportanti il risultato di ricostruzione del lattice.
+
+È evidente come il metodo di perturbazione \(f_2\), unito al Simulated Annealing, risulti in assoluto il metodo migliore per trattare il problema di ricostruzione.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/lattice_5.png}
+    \caption{Performance ottenute per un lattice quadrato bidimensionale di dimensione \(20 \times 20\).}\label{fig:lattice_20_performance}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f0_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f1_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f2_ga.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f0_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f1_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f2_sa.jpg}
+    }
+    \caption{Valori di masse e pesi ottenuti per un lattice bidimensionale di lato \(l=20\).}\label{fig:lattice_20_data}
+\end{figure}
+
 \subsection{Toy Models 3D}
+
+Si analizza per il caso tridimensionale un cubo regolare disposto spazialmente nello spazio \(xyz\).
+Risultando impossibile mostrare su carta adeguatamente i risultati della ricostruzione tridimensionale, sono stati prodotti, oltre ai grafici presentati in questa relazione, dei video mostranti i grafici stessi in lenta rotazione.
+
+Si invita il lettore a prendere visione dei video allegati corrispondenti per poter apprezzare adeguatamente i risultati riportati.
 
 \subsubsection{Cubo \((l = 5, n = 125)\)}
 
+I punteggi di performance sono riportati in Figura~\ref{fig:cube_5_performance}.
+Il trend nei punteggi osservato nel caso bidimensionale risulta consistente anche nel caso tridimensionale e si conferma l'efficacia del metodo \(f_2\).
+
+Si riportano i grafici di distribuzione di masse e pesi in Figura~\ref{fig:cube_5_data} ed i grafici riportanti i risultati della ricostruzione in Figura~\ref{fig:cube_5_comparison}.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/cube_5.png}
+    \caption{Performance ottenute per un grafo cubico di dimensione \(5 \times 5 \times 5\).}\label{fig:cube_5_performance}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f0_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f1_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f2_ga.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f0_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f1_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f2_sa.jpg}
+    }
+    \caption{Valori di masse e pesi ottenuti per un grafo cubico di lato \(l=5\).}\label{fig:cube_5_data}
+\end{figure}
+
 \subsubsection{Cubo \((l = 7, n = 343)\)}
 
-\printbibliography
+I punteggi di performance sono riportati in Figura~\ref{fig:cube_7_performance}.
+Il trend nei punteggi non presenta differenze rispetto ai casi precedenti.
+
+Si riportano i grafici di distribuzione di masse e pesi in Figura~\ref{fig:cube_7_data} ed i grafici riportanti i risultati della ricostruzione in Figura~\ref{fig:cube_7_comparison}.
+
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/cube_7.png}
+    \caption{Performance ottenute per un grafo cubico di dimensione \(7 \times 7 \times 7\).}\label{fig:cube_7_performance}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f0_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f1_ga.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f2_ga.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f0_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f1_sa.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f2_sa.jpg}
+    }
+    \caption{Valori di masse e pesi ottenuti per un grafo cubico di lato \(l=7\).}\label{fig:cube_7_data}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f0_ga_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f1_ga_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f2_ga_comparison.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f0_sa_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f1_sa_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_5_f2_sa_comparison.jpg}
+    }
+    \caption{Confronto nella ricostruzione di un lattice \(5\times 5\).}\label{fig:lattice_5_comparison}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f0_ga_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f1_ga_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f2_ga_comparison.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f0_sa_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f1_sa_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_10_f2_sa_comparison.jpg}
+    }
+    \caption{Confronto nella ricostruzione di un lattice \(10\times 10\).}\label{fig:lattice_10_comparison}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f0_ga_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f1_ga_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f2_ga_comparison.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f0_sa_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f1_sa_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/lattice_20_f2_sa_comparison.jpg}
+    }
+    \caption{Confronto nella ricostruzione di un lattice \(20\times 20\).}\label{fig:lattice_20_comparison}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f0_ga_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f1_ga_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f2_ga_comparison.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f0_sa_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f1_sa_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_5_f2_sa_comparison.jpg}
+    }
+    \caption{Confronto nella ricostruzione di un cubo \(5\times 5\).}\label{fig:cube_5_comparison}
+\end{figure}
+
+\begin{figure}[p]
+    \centering
+    \subfloat[][Metodo \(f_0\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f0_ga_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f1_ga_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore GA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f2_ga_comparison.jpg}
+    }
+    \\
+    \subfloat[][Metodo \(f_0\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f0_sa_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_1\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f1_sa_comparison.jpg}
+    }
+    \subfloat[][Metodo \(f_2\), ottimizzatore SA]
+    {
+        \includegraphics[width=0.33\textwidth]{img/cube_7_f2_sa_comparison.jpg}
+    }
+    \caption{Confronto nella ricostruzione di un cubo \(7\times 7\).}\label{fig:cube_7_comparison}
+\end{figure}
+
+\newpage
+
+\section{Commenti finali}
+
+Nel complesso di questa analisi. Si è evidenziato come il Simulated Annealing risulti essere un algoritmo di ottimizzazione molto meglio indicato allo scopo di ricostruire spazialmente un grafo rispetto ad un Genetic Algorithm.
+Questo può essere ricondotto e giustificato alla natura stessa del problema, che favorisce l'uso di un algoritmo di esplorazione `continua' rispetto ad un algoritmo puramente combinatorio.
+
+Oltre a questo, si è evidenziato come sia più efficace assegnare liberamente nuovi pesi ai link di un grafo rispetto ad assegnarli facendo uso di funzioni di massa o rispetto a modificare la struttura del laplaciano tramite matrici diagonali.
+
 \appendix
+
 \section{Soluzione al Constrained Quadratic Optimization Problem}\label{sec:soluzione_constrained}
 In questa appendice si analizza una particolare tipologia di problemi di ottimizzazione, la cui soluzione è un autovettore generalizzato.
 
@@ -394,6 +853,6 @@ Definiamo quindi il seguente problema di ottimizzazione vincolato:
     Ergo, per ogni \(\vb{x}\) che soddisfa i vincoli, si ha che \(\vb{x}^T A \vb{x} \geq \lambda_k\). Siccome si ha che \(\vb{u}_k^T A \vb{u}_k = \lambda_k\), se ne deduce che la soluzione minimizzante è \(\vb{x} = \vb{u}_k\).
 \end{proof}
 
-
+\printbibliography
 
 \end{document}
