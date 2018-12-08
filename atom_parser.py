@@ -39,7 +39,7 @@ def parse_pdb_file(filepath):
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        directory = "."
+        directory = "pdb_files"
     else:
         directory = sys.argv[1]
     items = os.listdir(directory)
