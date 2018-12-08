@@ -18,7 +18,8 @@ AA_LIST = ["ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS",
 
 def unload_pickle_file(filepath):
     """
-    Are lists better than dictionaries in this context?
+    Unloads a Pickle file made by atom_parser into two lists.
+    (protein_name and protein_data)
     """
     with open(filepath, 'rb') as f:
         dictionary = pickle.load(f)
@@ -30,57 +31,61 @@ def unload_pickle_file(filepath):
     return protein_name, protein_data
 
 
-def filter_dataset_CA(dataset_list):
+def filter_dataset_CA(dataset):
     """
-    Filter only the CA atoms
+    Filter only the CA atoms from a given dataset.
+    Returns the list of datasets. 
     """
-    new_dataset_list = []
-    for dataset in dataset_list:
-        new_dataset_list.append(dataset[dataset["atom_name"] == "CA"])
-    return new_dataset_list
+    return dataset[dataset["atom_name"] == "CA"]
 
 
-def make_contact_map_CA(dataset_list, threshold):
+def make_contact_map_CA(dataset, threshold):
     """
-    Make a CA only contact map
+    Make a CA only contact map.
+    Returns a list of contact maps.
     """
-    contact_map_list = []
-    for dataset in dataset_list:
-        filtered_dataset = filter_dataset_CA(dataset)
-        N = len(filtered_dataset)
-        contact_map = np.zeros((N, N), dtype=np.bool)
-        for i in range(N):
-            for j in range(i + 1, N):
-                a = np.array([filtered_dataset[i]["x"],
-                              filtered_dataset[i]["y"],
-                              filtered_dataset[i]["z"]])
-                b = np.array([filtered_dataset[j]["x"],
-                              filtered_dataset[j]["y"],
-                              filtered_dataset[j]["z"]])
+    filtered_dataset = filter_dataset_CA(dataset)
+    N = len(filtered_dataset)
+    contact_map = np.zeros((N, N), dtype=np.bool)
+    for i in range(N):
+        for j in range(i + 1, N):
+            a = np.array([filtered_dataset.iloc[i]["x"],
+                            filtered_dataset.iloc[i]["y"],
+                            filtered_dataset.iloc[i]["z"]])
+            b = np.array([filtered_dataset.iloc[j]["x"],
+                            filtered_dataset.iloc[j]["y"],
+                            filtered_dataset.iloc[j]["z"]])
+            # Some skimming is needed
+            if threshold >= 1:
+                if threshold > np.max(np.abs(a - b)):
+                    norm = np.linalg.norm(a - b)
+                    print(i, j, norm)
+                    if norm < threshold:
+                        contact_map[i][j] = 1
+                        contact_map[j][i] = 1
+            else:
                 norm = np.linalg.norm(a - b)
+                print(i, j, norm)
                 if norm < threshold:
                     contact_map[i][j] = 1
                     contact_map[j][i] = 1
-        contact_map_list.append(contact_map)
-    return contact_map_list
+    return contact_map
 
 
-def make_coordinate_dataset_CA(dataset_list):
-    coordinate_dataset_list = []
-    filtered_datasets = filter_dataset_CA(dataset_list)
-    for dataset in filtered_datasets:
-        coordinate_dataset_list.append(
-            pd.DataFrame(dataset[["x", "y", "z"]].values,
-                         columns=("x", "y", "z")))
-    return coordinate_dataset_list
+def make_coordinate_dataset(dataset):
+    """
+    Returns only the coordinates of a dataset.
+    """
+    coordinates = dataset[["x", "y", "z"]].values
+    coordinates -= coordinates.mean(axis=0)
+    coordinates /= np.linalg.norm(coordinates, axis=0)
+    return pd.DataFrame(coordinates,
+                        columns=("x", "y", "z"))
 
 
-def make_protein_network(dataset_list, threshold):
-    network_list = []
-    contact_map_list = make_contact_map_CA(dataset_list, threshold)
-    for contact_map in contact_map_list:
-        network_list.append(nx.from_numpy_array(contact_map))
-    return contact_map_list, network_list
+def make_protein_network_CA(dataset, threshold):
+    contact_map = make_contact_map_CA(dataset, threshold)
+    return contact_map, nx.from_numpy_array(contact_map)
 
 
 def refresh_network_weights(dataset_list, network_list, aa_contact_map):
@@ -108,3 +113,17 @@ def create_AA_contact_map(weight_list):
         aa_contact_map[combo_list[i][0]][combo_list[i][1]] = weight_list[i]
         aa_contact_map[combo_list[i][1]][combo_list[i][0]] = weight_list[i]
     return aa_contact_map
+
+#%%
+THRESHOLD = 2.0
+protein_name_list, protein_data_list = (
+    unload_pickle_file("pdb_files/proteins.pkl"))
+protein_data_filtered = []
+contact_map_list = []
+network_list = []
+# Will take A LOT of time... what can I do?
+for dataset in protein_data_list:
+    protein_data_filtered.append(filter_dataset_CA(dataset))
+    temp1, temp2 = make_protein_network_CA(dataset, THRESHOLD)
+    contact_map_list.append(temp1)
+    network_list.append(temp2)
