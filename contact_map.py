@@ -7,6 +7,7 @@ import itertools
 import network_tools as nt
 import rmsd
 import matplotlib.pyplot as plt
+import protein_simulated_annealing as sa
 
 """
 This script takes the processed .pdb files as DataFrames and returns the
@@ -115,6 +116,35 @@ def create_AA_contact_map(weight_list):
         aa_contact_map[combo_list[i][1]][combo_list[i][0]] = weight_list[i]
     return aa_contact_map
 
+
+# Fitness Functions
+
+def fitness_single(masses, fitness_parameters):
+    # fitness_parameters[0] = protein_network
+    # fitness_parameters[1] = target_coordinates
+    laplacian = nt.create_weighted_laplacian(fitness_parameters[0], masses)
+    guess_coordinates = nt.get_spectral_coordinates(laplacian, dim=3)
+    return rmsd.kabsch_rmsd(guess_coordinates.values,
+                            fitness_parameters[1].values)
+
+
+def fitness_all(masses, fitness_parameters):
+    # fitness_parameters[0] = protein_network_list
+    # fitness_parameters[1] = target_coordinates_list
+    # fitness_parameters[2] = dataset_list
+    aa_contact_map = create_AA_contact_map(masses)
+    fitness = 0.0
+    network_list = refresh_network_weights(fitness_parameters[2],
+                                           fitness_parameters[0],
+                                           aa_contact_map)
+    for i in range(len(network_list)):
+        guess_coordinates = nt.get_spectral_coordinates(network_list[i], dim=3)
+        fitness += rmsd.kabsch_rmsd(guess_coordinates.values,
+                                    fitness_parameters[1][i].values)
+    return fitness
+
+
+# Plotting Functions
 
 def plot_distance_statistics(distance_matrix_list,
                              n_bins,
