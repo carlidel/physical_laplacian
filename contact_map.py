@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 import itertools
+import network_tools as nt
+import rmsd
+import matplotlib.pyplot as plt
 
 """
 This script takes the processed .pdb files as DataFrames and returns the
@@ -31,6 +34,38 @@ def unload_pickle_file(filepath):
     return protein_name, protein_data
 
 
+def process_distance_matrix_CA(protein_name, dataset):
+    filtered_dataset = filter_dataset_CA(dataset)
+    N = len(filtered_dataset)
+    dist_matrix = np.zeros((N, N))
+    for i in range(N):
+        print(str(i) + "/" + str(N))
+        for j in range(i + 1, N):
+            a = np.array([filtered_dataset.iloc[i]["x"],
+                          filtered_dataset.iloc[i]["y"],
+                          filtered_dataset.iloc[i]["z"]])
+            b = np.array([filtered_dataset.iloc[j]["x"],
+                          filtered_dataset.iloc[j]["y"],
+                          filtered_dataset.iloc[j]["z"]])
+            dist_matrix[i][j] = np.linalg.norm(a - b)
+            dist_matrix[j][i] = dist_matrix[i][j]
+    with open("pdb_files/" + protein_name + "_dist.pkl", "wb") as f:
+        pickle.dump(dist_matrix, f)
+
+
+def unload_distance_matrix_CA(filepath):
+    with open(filepath, 'rb') as f:
+        return pickle.load(f)
+
+
+def unload_all_distance_matrix_CA(namelist, folderpath="pdb_files/"):
+    distance_matrix_list = []
+    for name in namelist:
+        with open(folderpath + name + "_dist.pkl", 'rb') as f:
+            distance_matrix_list.append(pickle.load(f))
+    return distance_matrix_list
+
+
 def filter_dataset_CA(dataset):
     """
     Filter only the CA atoms from a given dataset.
@@ -39,37 +74,8 @@ def filter_dataset_CA(dataset):
     return dataset[dataset["atom_name"] == "CA"]
 
 
-def make_contact_map_CA(dataset, threshold):
-    """
-    Make a CA only contact map.
-    Returns a list of contact maps.
-    """
-    filtered_dataset = filter_dataset_CA(dataset)
-    N = len(filtered_dataset)
-    contact_map = np.zeros((N, N), dtype=np.bool)
-    for i in range(N):
-        for j in range(i + 1, N):
-            a = np.array([filtered_dataset.iloc[i]["x"],
-                            filtered_dataset.iloc[i]["y"],
-                            filtered_dataset.iloc[i]["z"]])
-            b = np.array([filtered_dataset.iloc[j]["x"],
-                            filtered_dataset.iloc[j]["y"],
-                            filtered_dataset.iloc[j]["z"]])
-            # Some skimming is needed
-            if threshold >= 1:
-                if threshold > np.max(np.abs(a - b)):
-                    norm = np.linalg.norm(a - b)
-                    print(i, j, norm)
-                    if norm < threshold:
-                        contact_map[i][j] = 1
-                        contact_map[j][i] = 1
-            else:
-                norm = np.linalg.norm(a - b)
-                print(i, j, norm)
-                if norm < threshold:
-                    contact_map[i][j] = 1
-                    contact_map[j][i] = 1
-    return contact_map
+def make_network_from_distance_matrix(distance_matrix, threshold):
+    return nx.from_numpy_array(distance_matrix <= threshold)
 
 
 def make_coordinate_dataset(dataset):
@@ -81,11 +87,6 @@ def make_coordinate_dataset(dataset):
     coordinates /= np.linalg.norm(coordinates, axis=0)
     return pd.DataFrame(coordinates,
                         columns=("x", "y", "z"))
-
-
-def make_protein_network_CA(dataset, threshold):
-    contact_map = make_contact_map_CA(dataset, threshold)
-    return contact_map, nx.from_numpy_array(contact_map)
 
 
 def refresh_network_weights(dataset_list, network_list, aa_contact_map):
@@ -114,16 +115,145 @@ def create_AA_contact_map(weight_list):
         aa_contact_map[combo_list[i][1]][combo_list[i][0]] = weight_list[i]
     return aa_contact_map
 
+
+def plot_distance_statistics(distance_matrix_list,
+                             n_bins,
+                             title="",
+                             savepath="",
+                             showfig=True):
+    distance_array_list = []
+    for matrix in distance_matrix_list:
+        distance_array_list.append(matrix.flatten())
+    distance_matrix_list = np.concatenate(distance_array_list).ravel()
+    plt.hist(distance_matrix_list, bins=n_bins, density=True)
+    plt.xlabel("Distanza $[\\AA]$")
+    plt.ylabel("Distribuzione di probabilità")
+    if title != "":
+        plt.title(title)
+    if showfig:
+        plt.show()
+    if savepath != "":
+        plt.savefig(savepath, dpi=300)
+        plt.clf()
+    
+
+def plot_protein_network(network,
+                         distance_matrix,
+                         threshold,
+                         coords_original,
+                         coords_modified=np.zeros(1),
+                         spectral_basic=False,
+                         title="",
+                         savepath="",
+                         showfig=True,
+                         view_thet=30,
+                         view_phi=30):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    # Make network to be plotted (low threshold)
+    plt_network = make_network_from_distance_matrix(distance_matrix, threshold)
+    # Plot original coords
+    ax.scatter(coords_original["x"],
+               coords_original["y"],
+               coords_original["z"],
+               label="Originale", c="C0")
+    for edge in list(plt_network.edges):
+        ax.plot((coords_original.iloc[edge[0]]["x"],
+                 coords_original.iloc[edge[1]]["x"]),
+                (coords_original.iloc[edge[0]]["y"],
+                 coords_original.iloc[edge[1]]["y"]),
+                (coords_original.iloc[edge[0]]["z"],
+                 coords_original.iloc[edge[1]]["z"]),
+                c="grey", alpha=0.7)
+    # If any, plot given coords
+    if coords_modified.any():
+        ax.scatter(coords_modified["x"],
+                   coords_modified["y"],
+                   coords_modified["z"],
+                   label="Spectral Drawing Perturbato", c="C1")
+        for edge in list(plt_network.edges):
+            ax.plot((coords_modified.iloc[edge[0]]["x"],
+                     coords_modified.iloc[edge[1]]["x"]),
+                    (coords_modified.iloc[edge[0]]["y"],
+                     coords_modified.iloc[edge[1]]["y"]),
+                    (coords_modified.iloc[edge[0]]["z"],
+                     coords_modified.iloc[edge[1]]["z"]),
+                    c="red", alpha=0.4)
+    # Do you also want the spectral basic?
+    if spectral_basic:
+        coords_basic = nt.get_spectral_coordinates(
+            nx.laplacian_matrix(network).todense(), dim=3)
+        coords_basic = pd.DataFrame(
+            rmsd.kabsch_rotate(coords_basic.values, coords_original.values),
+            columns=["x", "y", "z"])
+        ax.scatter(coords_basic["x"],
+                   coords_basic["y"],
+                   coords_basic["z"],
+                   label="Spectral Drawing Originale", c="C2")
+        for edge in list(plt_network.edges):
+            ax.plot((coords_basic.iloc[edge[0]]["x"],
+                     coords_basic.iloc[edge[1]]["x"]),
+                    (coords_basic.iloc[edge[0]]["y"],
+                     coords_basic.iloc[edge[1]]["y"]),
+                    (coords_basic.iloc[edge[0]]["z"],
+                     coords_basic.iloc[edge[1]]["z"]),
+                    c="yellow", alpha=0.4)
+    ax.legend()
+    ax.set_xlabel("X $[\\AA]$")
+    ax.set_ylabel("Y $[\\AA]$")
+    ax.set_zlabel("Z $[\\AA]$")
+    if title != "":
+        ax.set_title(title)
+    if showfig:
+        ax.view_init(view_thet, view_phi)
+        plt.show()
+    if savepath != "":
+        ax.view_init(view_thet, view_phi)
+        plt.savefig(savepath, dpi=300)
+        plt.clf()
+    
+
 #%%
-THRESHOLD = 2.0
+# Load all the data!
+protein_name_list, protein_data_list = (
+    unload_pickle_file("pdb_files/proteins.pkl"))
+distance_matrix_CA_list = (unload_all_distance_matrix_CA(protein_name_list))
+
+coordinate_list = []
+for protein_data in protein_data_list:
+    coordinate_list.append(
+        make_coordinate_dataset(filter_dataset_CA(protein_data)))
+
+#%%
+plot_distance_statistics(distance_matrix_CA_list, 200)
+
+#%%
+
+network = make_network_from_distance_matrix(
+        distance_matrix_CA_list[0], 12.)
+
+nt.plot_network_and_spectral_basic(
+    network, coordinate_list[0],
+    "", "", True)
+
+#%%
+
+"""
+THRESHOLD = 10.0
 protein_name_list, protein_data_list = (
     unload_pickle_file("pdb_files/proteins.pkl"))
 protein_data_filtered = []
 contact_map_list = []
 network_list = []
 # Will take A LOT of time... what can I do?
-for dataset in protein_data_list:
+for dataset in protein_data_list[0:1]:
     protein_data_filtered.append(filter_dataset_CA(dataset))
     temp1, temp2 = make_protein_network_CA(dataset, THRESHOLD)
     contact_map_list.append(temp1)
     network_list.append(temp2)
+    
+#%%
+plt.imshow(culo)
+plt.colorbar()
+plt.show()
+"""

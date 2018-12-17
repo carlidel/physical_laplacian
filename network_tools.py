@@ -196,7 +196,6 @@ def get_spectral_coordinates(laplacian=np.zeros(1),
 
 # Drawing and comparison functions
 
-
 def plot_3d_scatter(dataset,
                     title="",
                     savepath="",
@@ -257,3 +256,85 @@ def plot_multiple_3d_scatter(datasets,
         ax.view_init(view_thet, view_phi)
         plt.savefig(savepath, dpi=300)
         plt.close()
+
+
+def plot_protein_network_with_edges(network,
+                                    coordinates,
+                                    title="",
+                                    savepath="",
+                                    showfig="False",
+                                    view_thet=30,
+                                    view_phi=30):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(coordinates["x"], coordinates["y"], coordinates["z"])
+    for edge in list(network.edges):
+        ax.plot((coordinates.iloc[edge[0]]["x"],
+                 coordinates.iloc[edge[1]]["x"]),
+                (coordinates.iloc[edge[0]]["y"],
+                 coordinates.iloc[edge[1]]["y"]),
+                (coordinates.iloc[edge[0]]["z"],
+                 coordinates.iloc[edge[1]]["z"]),
+                 c="grey", alpha=0.7)
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    if title != "":
+        ax.set_title(title)
+    if showfig:
+        ax.view_init(view_thet, view_phi)
+        plt.show()
+    if savepath != "":
+        ax.view_init(view_thet, view_phi)
+        plt.savefig(savepath, dpi=300)
+        plt.close()
+
+
+def plot_network_and_spectral_basic(network,
+                                    coordinates,
+                                    title="",
+                                    savepath="",
+                                    showfig="False",
+                                    view_thet=30,
+                                    view_phi=30):
+    basic_coordinates = get_spectral_coordinates(
+        nx.laplacian_matrix(network).todense(), dim=3)
+    basic_coordinates = pd.DataFrame(
+        rmsd.kabsch_rotate(basic_coordinates.values, coordinates.values),
+        columns=["x", "y", "z"])
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(coordinates["x"], coordinates["y"], coordinates["z"],
+               label="Originale")
+    ax.scatter(basic_coordinates["x"],
+               basic_coordinates["y"],
+               basic_coordinates["z"],
+               label="Spectral Basic")
+    for edge in list(network.edges):
+        ax.plot((coordinates.iloc[edge[0]]["x"],
+                 coordinates.iloc[edge[1]]["x"]),
+                (coordinates.iloc[edge[0]]["y"],
+                 coordinates.iloc[edge[1]]["y"]),
+                (coordinates.iloc[edge[0]]["z"],
+                 coordinates.iloc[edge[1]]["z"]),
+                c="grey", alpha=0.7)
+        ax.plot((basic_coordinates.iloc[edge[0]]["x"],
+                 basic_coordinates.iloc[edge[1]]["x"]),
+                (basic_coordinates.iloc[edge[0]]["y"],
+                 basic_coordinates.iloc[edge[1]]["y"]),
+                (basic_coordinates.iloc[edge[0]]["z"],
+                 basic_coordinates.iloc[edge[1]]["z"]),
+                c="red", alpha=0.4)
+    ax.legend()
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    if title != "":
+        ax.set_title(title)
+    if showfig:
+        ax.view_init(view_thet, view_phi)
+        plt.show()
+    if savepath != "":
+        ax.view_init(view_thet, view_phi)
+        plt.savefig(savepath, dpi=300)
+        plt.clf()
