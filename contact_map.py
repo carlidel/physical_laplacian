@@ -197,7 +197,7 @@ def plot_protein_network(network,
                      coords_basic.iloc[edge[1]]["y"]),
                     (coords_basic.iloc[edge[0]]["z"],
                      coords_basic.iloc[edge[1]]["z"]),
-                    c="yellow", alpha=0.4)
+                    c="green", alpha=0.4)
     ax.legend()
     ax.set_xlabel("X $[\\AA]$")
     ax.set_ylabel("Y $[\\AA]$")
@@ -213,6 +213,35 @@ def plot_protein_network(network,
         plt.clf()
     
 
+def rotational_protein_movie(network,
+                             distance_matrix,
+                             threshold,
+                             coords_original,
+                             coords_modified=np.zeros(1),
+                             spectral_basic=False,
+                             title="",
+                             filename="",
+                             showfig=True,
+                             view_phi=30,
+                             n_frames=360):
+    os.system("mkdir foo")
+    os.system("del \"foo\\foo*.jpg\"")
+    for i, angle in enumerate(np.linspace(0, 360, n_frames, endpoint=False)):
+        print(str(i) + "/" + str(n_frames))
+        plot_protein_network(network,
+                             distance_matrix,
+                             threshold,
+                             coords_original,
+                             coords_modified,
+                             spectral_basic,
+                             title,
+                             ("foo\\foo" + str(i).zfill(5) + ".jpg"),
+                             view_phi=30,
+                             view_thet=angle)
+    os.system("ffmpeg -y -i \"foo\\foo%05d.jpg\" "
+              + "img\\" + filename + ".mp4")
+
+
 #%%
 # Load all the data!
 protein_name_list, protein_data_list = (
@@ -225,16 +254,24 @@ for protein_data in protein_data_list:
         make_coordinate_dataset(filter_dataset_CA(protein_data)))
 
 #%%
-plot_distance_statistics(distance_matrix_CA_list, 200)
+plot_distance_statistics(distance_matrix_CA_list, 1000)
 
 #%%
 
 network = make_network_from_distance_matrix(
         distance_matrix_CA_list[0], 12.)
 
-nt.plot_network_and_spectral_basic(
-    network, coordinate_list[0],
-    "", "", True)
+plot_protein_network(network,
+                     distance_matrix_CA_list[0],
+                     4.0,
+                     coordinate_list[0],
+                     coords_modified=np.zeros(1),
+                     spectral_basic=True,
+                     title="",
+                     savepath="",
+                     showfig=True,
+                     view_thet=30,
+                     view_phi=30)
 
 #%%
 
