@@ -122,8 +122,11 @@ def create_AA_contact_map(weight_list):
 def fitness_single(masses, fitness_parameters):
     # fitness_parameters[0] = protein_network
     # fitness_parameters[1] = target_coordinates
-    laplacian = nt.create_weighted_laplacian(fitness_parameters[0], masses)
-    guess_coordinates = nt.get_spectral_coordinates(laplacian, dim=3)
+    network = nt.modify_edges_weitghts(fitness_parameters[0], masses)
+    guess_coordinates = nt.get_spectral_coordinates(
+        nx.laplacian_matrix(network).todense(),
+        mod_matrix=np.diag([1. / a[1] for a in list(network.degree)]),
+        dim=3)
     return rmsd.kabsch_rmsd(guess_coordinates.values,
                             fitness_parameters[1].values)
 
@@ -197,10 +200,18 @@ def plot_protein_network(network,
                 c="grey", alpha=0.7)
     # If any, plot given coords
     if not coords_modified.empty:
+        print("given coords")
+        # APPLY THE RMSD (you never know...)
+        coords_modified = pd.DataFrame(
+            rmsd.kabsch_rotate(coords_modified.values, coords_original.values),
+            columns=["x", "y", "z"])
+        score_modified = rmsd.kabsch_rmsd(
+            coords_modified.values, coords_original.values)
         ax.scatter(coords_modified["x"],
                    coords_modified["y"],
                    coords_modified["z"],
-                   label="Spectral Drawing Perturbato", c="C1")
+                   label="SD Perturbato, RMSD = {:.6f}".format(score_modified),
+                   c="C1")
         for edge in list(plt_network.edges):
             ax.plot((coords_modified.iloc[edge[0]]["x"],
                      coords_modified.iloc[edge[1]]["x"]),
@@ -211,17 +222,21 @@ def plot_protein_network(network,
                     c="red", alpha=0.4)
     # Do you also want the spectral basic?
     if spectral_basic:
+        print("spectral_basic")
         coords_basic = nt.get_spectral_coordinates(
             nx.laplacian_matrix(network).todense(), 
-            #mod_matrix = np.linalg.inv(np.diag([a[1] for a in list(network.degree)])),
+            mod_matrix = np.diag([1 / a[1] for a in list(network.degree)]),
             dim=3)
         coords_basic = pd.DataFrame(
             rmsd.kabsch_rotate(coords_basic.values, coords_original.values),
             columns=["x", "y", "z"])
+        score_basic = rmsd.kabsch_rmsd(
+            coords_basic.values, coords_original.values)
         ax.scatter(coords_basic["x"],
                    coords_basic["y"],
                    coords_basic["z"],
-                   label="Spectral Drawing Originale", c="C2")
+                   label="SD Originale, RMSD = {:.6f}".format(score_basic),
+                   c="C2")
         for edge in list(plt_network.edges):
             ax.plot((coords_basic.iloc[edge[0]]["x"],
                      coords_basic.iloc[edge[1]]["x"]),
@@ -290,21 +305,40 @@ network = make_network_from_distance_matrix(distance_matrix_CA_list[7], 20.)
 
 masses = sa.simulated_annealing(len(list(network.edges())),
                                 fitness_single,
-                                (network, coordinate_list[7]),
+                                (network.copy(), coordinate_list[7]),
                                 100,
                                 1,
-                                1000,
-                                n_iterations=10000)
+                                10,
+                                n_iterations=30000)
 #%%
 network = make_network_from_distance_matrix(distance_matrix_CA_list[7], 20.)
-
+network = nt.modify_edges_weitghts(network, masses)
 coords_modified = nt.get_spectral_coordinates(
-    nt.create_weighted_laplacian(network, masses), dim=3
+    nx.laplacian_matrix(network).todense(),
+    mod_matrix=np.diag([1. / a[1] for a in list(nx.degree(network))]),
+    dim=3
 )
 
-plot_protein_network(network,
+
+plot_protein_network(network.copy(),
                      distance_matrix_CA_list[7],
-                     4.0,
+                     5.0,
+                     coordinate_list[7],
+                     coords_modified=coords_modified,
+                     spectral_basic=False,
+                     title="",
+                     savepath="",
+                     showfig=True,
+                     view_thet=30,
+                     view_phi=30)
+
+#%%
+#network = make_network_from_distance_matrix(distance_matrix_CA_list[7], 20.)
+network = make_network_from_distance_matrix(distance_matrix_CA_list[7], 20.)
+
+plot_protein_network(network.copy(),
+                     distance_matrix_CA_list[7],
+                     5.0,
                      coordinate_list[7],
                      #coords_modified=coords_modified,
                      spectral_basic=True,
@@ -313,7 +347,6 @@ plot_protein_network(network,
                      showfig=True,
                      view_thet=30,
                      view_phi=30)
-
 
 #%%
 plot_distance_statistics(distance_matrix_CA_list, 1000)

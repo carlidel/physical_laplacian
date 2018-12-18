@@ -137,16 +137,21 @@ def create_customized_laplacian_v2(net, mass_list):
     return nx.laplacian_matrix(network).todense()
 
 
-def create_weighted_laplacian(net, mass_list):
+def create_weighted_laplacian(network, mass_list):
     '''
     Modify all the links' weight and then return the new computed laplacian
     '''
-    network = net.copy()
-    edge_list = list(network.edges())
-    assert len(mass_list) == len(edge_list)
-    for i in range(len(mass_list)):
-        network[edge_list[i][0]][edge_list[i][1]]['weight'] = mass_list[i]
+    assert len(mass_list) == len(network.edges)
+    for i, edge in enumerate(network.edges):
+        network.edges[edge]['weight'] = mass_list[i]
     return nx.laplacian_matrix(network).todense()
+
+
+def modify_edges_weitghts(network, mass_list):
+    assert len(mass_list) == len(network.edges)
+    for i, edge in enumerate(network.edges):
+        network.edges[edge]['weight'] = mass_list[i]
+    return network
 
 
 def get_spectral_coordinates(laplacian=np.zeros(1), 
@@ -177,11 +182,11 @@ def get_spectral_coordinates(laplacian=np.zeros(1),
         val, eigenvectors = np.linalg.eigh(laplacian)
     merged = (sorted(list(zip(val, eigenvectors.transpose().tolist())),
                      key=lambda k: k[0]))
-    vec1 = np.asarray(merged[1][1])
+    vec1 = merged[1][1]
     if dim >= 2:
-        vec2 = np.asarray(merged[2][1])
+        vec2 = merged[2][1]
         if dim == 3:
-            vec3 = np.asarray(merged[3][1])
+            vec3 = merged[3][1]
         else:
             vec3 = np.zeros(len(merged[3][1]))
     else:

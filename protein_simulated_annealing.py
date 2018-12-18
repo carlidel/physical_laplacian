@@ -28,20 +28,15 @@ n_iterations = 100000
 
 
 def first_individual(lenght, value_resolution):
-    return np.random.randint(0, value_resolution, lenght)
+    return np.random.choice(value_resolution, lenght)
 
 
 def new_individual(individual, value_resolution):
-    new_individual = []
-    for element in individual:
-        new_value = element + random.sample([-1, 0, 1], 1)[0]
-        if new_value < 0:
-            new_individual.append(0)
-        elif new_value > value_resolution:
-            new_individual.append(value_resolution)
-        else:
-            new_individual.append(new_value)
-    return np.asarray(new_individual)
+    new = (individual 
+           + np.random.choice([-1, 0, 1], len(individual)))
+    new[new < 0] = 0
+    new[new > value_resolution] = value_resolution
+    return new
 
 
 def simulated_annealing(n_masses,
@@ -54,10 +49,11 @@ def simulated_annealing(n_masses,
                         T_1=T_1,
                         n_iterations=n_iterations):
     individual = first_individual(n_masses, value_resolution)
-    T_list = np.logspace(np.log10(T_0),
-                         np.log10(T_1),
-                         n_iterations,
-                         endpoint=False)
+    #T_list = np.logspace(np.log10(T_0),
+    #                     np.log10(T_1),
+    #                     n_iterations,
+    #                     endpoint=False)
+    T_list = np.linspace(T_0, T_1, n_iterations, endpoint=False)
     for i in range(len(T_list)):
         # Creation and evaluation
         masses = ((max_mass - min_mass) * (individual / value_resolution)

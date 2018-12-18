@@ -11,7 +11,7 @@ Implementation of a generic Genetic Algorithm optimizer
 for optimal laplacian mass tuning.
 """
 # GA parameters
-population_size = 1000
+population_size = 100
 elite_rate = 0.10
 random_rate = 0.10
 mutation_rate = 0.5
