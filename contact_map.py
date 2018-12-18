@@ -171,7 +171,7 @@ def plot_protein_network(network,
                          distance_matrix,
                          threshold,
                          coords_original,
-                         coords_modified=np.zeros(1),
+                         coords_modified=pd.DataFrame(),
                          spectral_basic=False,
                          title="",
                          savepath="",
@@ -196,7 +196,7 @@ def plot_protein_network(network,
                  coords_original.iloc[edge[1]]["z"]),
                 c="grey", alpha=0.7)
     # If any, plot given coords
-    if coords_modified.any():
+    if not coords_modified.empty:
         ax.scatter(coords_modified["x"],
                    coords_modified["y"],
                    coords_modified["z"],
@@ -212,7 +212,9 @@ def plot_protein_network(network,
     # Do you also want the spectral basic?
     if spectral_basic:
         coords_basic = nt.get_spectral_coordinates(
-            nx.laplacian_matrix(network).todense(), dim=3)
+            nx.laplacian_matrix(network).todense(), 
+            #mod_matrix = np.linalg.inv(np.diag([a[1] for a in list(network.degree)])),
+            dim=3)
         coords_basic = pd.DataFrame(
             rmsd.kabsch_rotate(coords_basic.values, coords_original.values),
             columns=["x", "y", "z"])
@@ -282,6 +284,36 @@ coordinate_list = []
 for protein_data in protein_data_list:
     coordinate_list.append(
         make_coordinate_dataset(filter_dataset_CA(protein_data)))
+
+#%%
+network = make_network_from_distance_matrix(distance_matrix_CA_list[7], 20.)
+
+masses = sa.simulated_annealing(len(list(network.edges())),
+                                fitness_single,
+                                (network, coordinate_list[7]),
+                                100,
+                                1,
+                                1000,
+                                n_iterations=10000)
+#%%
+network = make_network_from_distance_matrix(distance_matrix_CA_list[7], 20.)
+
+coords_modified = nt.get_spectral_coordinates(
+    nt.create_weighted_laplacian(network, masses), dim=3
+)
+
+plot_protein_network(network,
+                     distance_matrix_CA_list[7],
+                     4.0,
+                     coordinate_list[7],
+                     #coords_modified=coords_modified,
+                     spectral_basic=True,
+                     title="",
+                     savepath="",
+                     showfig=True,
+                     view_thet=30,
+                     view_phi=30)
+
 
 #%%
 plot_distance_statistics(distance_matrix_CA_list, 1000)

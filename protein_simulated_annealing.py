@@ -21,7 +21,7 @@ value_resolution = 100
 min_mass = 1.
 max_mass = 100.
 T_0 = 0.01
-T_1 = 0.000001
+T_1 = 0.00001
 n_iterations = 100000
 
 # Funcitions
