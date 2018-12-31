@@ -386,7 +386,7 @@ plot_protein_network(network,
                      view_phi=30)
 
 #%%
-
+"""
 """
 THRESHOLD = 10.0
 protein_name_list, protein_data_list = (
