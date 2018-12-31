@@ -301,6 +301,23 @@ for protein_data in protein_data_list:
         make_coordinate_dataset(filter_dataset_CA(protein_data)))
 
 #%%
+for j in range(5):
+    for i in range(len(protein_name_list)):
+        if len(coordinate_list[i] <= 400):
+            network = make_network_from_distance_matrix(distance_matrix_CA_list[i], 20.)
+            masses = sa.simulated_annealing(len(list(network.edges())),
+                                            fitness_single,
+                                            (network.copy(), coordinate_list[i]),
+                                            100,
+                                            1,
+                                            10,
+                                            n_iterations=30000)
+            with open("pdb_files/" + protein_name_list[i] + "_sa_masses_"+str(j)+"_.pkl", "wb") as f:
+                pickle.dump(masses, f)
+
+
+"""
+#%%
 network = make_network_from_distance_matrix(distance_matrix_CA_list[7], 20.)
 
 masses = sa.simulated_annealing(len(list(network.edges())),
