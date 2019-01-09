@@ -7,6 +7,7 @@ import numpy as np
 import networkx as nx
 import os
 from network_tools import *
+from tqdm import tqdm
 
 """
 Better implementation of a Simulated Annealing classificator.
@@ -49,12 +50,12 @@ def simulated_annealing(n_masses,
                         T_1=T_1,
                         n_iterations=n_iterations):
     individual = first_individual(n_masses, value_resolution)
-    #T_list = np.logspace(np.log10(T_0),
-    #                     np.log10(T_1),
-    #                     n_iterations,
-    #                     endpoint=False)
-    T_list = np.linspace(T_0, T_1, n_iterations, endpoint=False)
-    for i in range(len(T_list)):
+    T_list = np.logspace(np.log10(T_0),
+                         np.log10(T_1),
+                         n_iterations,
+                         endpoint=False)
+    #T_list = np.linspace(T_0, T_1, n_iterations, endpoint=False)
+    for i in tqdm(range(len(T_list))):
         # Creation and evaluation
         masses = ((max_mass - min_mass) * (individual / value_resolution)
                   + min_mass)
@@ -63,19 +64,10 @@ def simulated_annealing(n_masses,
         masses_2 = ((max_mass - min_mass) * (candidate / value_resolution)
                     + min_mass)
         fit_score_candidate = fitness_function(masses_2, fitness_parameters)
-        # Printing progress
-        if i % 100 == 0:
-            print(str(i) + "/" + str(n_iterations))
-            print("T: " + str(T_list[i]))
-            print("Fitness: " + str(fit_score))
-            print("Candidate Fitness: " + str(fit_score_candidate))
         # Annealing
         if fit_score_candidate < fit_score:
             individual = candidate
         else:
-            if i % 100 == 0:
-                print("P_pass: " +
-                      str(np.exp((fit_score - fit_score_candidate) / T_list[i])))
             if (np.random.rand()
                     < np.exp((fit_score - fit_score_candidate) / T_list[i])):
                 individual = candidate

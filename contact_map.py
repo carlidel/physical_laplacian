@@ -90,20 +90,23 @@ def make_coordinate_dataset(dataset):
                         columns=("x", "y", "z"))
 
 
-def refresh_network_weights(dataset_list, network_list, aa_contact_map):
-    for i in range(len(dataset_list)):
+def refresh_network_weights(dataset_list, network_list,
+                            aa_contact_map, edge_aa_list):
+    laplacian_list = []
+    for i, dataset in enumerate(dataset_list):
         edge_list = list(network_list[i].edges())
-        for j in range(len(edge_list)):
-            # AA identification
-            label_a = dataset_list[i].iloc[edge_list[j][0]]["residue_name"]
-            label_b = dataset_list[i].iloc[edge_list[j][1]]["residue_name"]
-            # AA CM location
-            index_a = AA_LIST.index(label_a)
-            index_b = AA_LIST.index(label_b)
+        laplacian = nx.laplacian_matrix(network_list[i]).todense()
+        for j, edge in enumerate(edge_aa_list[i]):
             # Change weigth
-            network_list[i][edge_list[j][0]][edge_list[j][1]]["weigth"] = (
-                aa_contact_map[index_a][index_b])
-    return network_list
+            laplacian[edge_list[j][0], edge_list[j][1]] = (
+                aa_contact_map[edge[0], edge[1]])
+            laplacian[edge_list[j][1], edge_list[j][0]] = (
+                aa_contact_map[edge[0], edge[1]])
+        for i in range(len(laplacian)):
+            laplacian[i, i] = 0
+            laplacian[i, i] = - np.sum(laplacian[i])
+        laplacian_list.append(laplacian)
+    return laplacian_list
 
 
 def create_AA_contact_map(weight_list):
@@ -124,8 +127,8 @@ def fitness_single(masses, fitness_parameters):
     # fitness_parameters[1] = target_coordinates
     network = nt.modify_edges_weitghts(fitness_parameters[0], masses)
     guess_coordinates = nt.get_spectral_coordinates(
-        nx.laplacian_matrix(network).todense(),
-        mod_matrix=np.diag([1. / a[1] for a in list(network.degree)]),
+        nx.laplacian_matrix(network).toarray(),
+        mod_matrix=np.diag([float(1 / a[1]) for a in network.degree]),
         dim=3)
     return rmsd.kabsch_rmsd(guess_coordinates.values,
                             fitness_parameters[1].values)
@@ -135,13 +138,18 @@ def fitness_all(masses, fitness_parameters):
     # fitness_parameters[0] = protein_network_list
     # fitness_parameters[1] = target_coordinates_list
     # fitness_parameters[2] = dataset_list
+    # fitness_parameters[3] = edge_aa_list
     aa_contact_map = create_AA_contact_map(masses)
     fitness = 0.0
-    network_list = refresh_network_weights(fitness_parameters[2],
-                                           fitness_parameters[0],
-                                           aa_contact_map)
-    for i in range(len(network_list)):
-        guess_coordinates = nt.get_spectral_coordinates(network_list[i], dim=3)
+    laplacian_list = refresh_network_weights(fitness_parameters[2],
+                                             fitness_parameters[0],
+                                             aa_contact_map,
+                                             fitness_parameters[3])
+    for i in range(len(laplacian_list)):
+        guess_coordinates = nt.get_spectral_coordinates(
+            laplacian_list[i],
+            mod_matrix=np.diag(1 / np.diag(laplacian_list[i])),
+            dim=3)
         fitness += rmsd.kabsch_rmsd(guess_coordinates.values,
                                     fitness_parameters[1][i].values)
     return fitness
@@ -258,6 +266,7 @@ def plot_protein_network(network,
         ax.view_init(view_thet, view_phi)
         plt.savefig(savepath, dpi=300)
         plt.clf()
+    fig.close()
     
 
 def rotational_protein_movie(network,
@@ -295,12 +304,65 @@ protein_name_list, protein_data_list = (
     unload_pickle_file("pdb_files/proteins.pkl"))
 distance_matrix_CA_list = (unload_all_distance_matrix_CA(protein_name_list))
 
+protein_data_processed_list = []
+
+for database in protein_data_list:
+    new_data = filter_dataset_CA(database)
+    new_data['aa_index'] = new_data["residue_name"].apply(lambda x : AA_LIST.index(x))
+    protein_data_processed_list.append(new_data)
+
 coordinate_list = []
 for protein_data in protein_data_list:
     coordinate_list.append(
         make_coordinate_dataset(filter_dataset_CA(protein_data)))
 
 #%%
+# BIG PHAT BOY
+
+protein_name_group = ['1a3h','1ank','1bqb','1cku','1cm7','1csp']
+#protein_name_group = ['1a3h','1ank','1bqb']
+#protein_name_group = ['1csp','1bqb']
+network_group = []
+target_coord_group = []
+dataset_group = []
+edge_aa_list = []
+
+for name in protein_name_group:
+    i = protein_name_list.index(name)
+    network = make_network_from_distance_matrix(
+            distance_matrix_CA_list[i], 20.)
+    edges = list(network.edges())
+    aa_edges = []
+    for j, edge in enumerate(edges):
+            # AA identification
+            index_a = protein_data_processed_list[i].iloc[edge[0]]["aa_index"]
+            index_b = protein_data_processed_list[i].iloc[edge[1]]["aa_index"]
+            aa_edges.append((index_a, index_b))
+    edge_aa_list.append(aa_edges)
+    network_group.append(network)
+    target_coord_group.append(coordinate_list[i])
+    dataset_group.append(protein_data_processed_list[i])
+
+N = len(AA_LIST)
+combo_list = list(itertools.combinations(range(N), 2))
+
+masses = sa.simulated_annealing(
+    len(combo_list),
+    fitness_all,
+    (network_group.copy(), target_coord_group, dataset_group, edge_aa_list),
+    100,
+    1,
+    10,
+    n_iterations=50000)
+
+final_matrix = create_AA_contact_map(masses)
+
+with open("AA_contact_map.pkl", 'wb') as f:
+    pickle.dump(final_matrix, f)
+
+
+#%%
+"""
 for j in range(5):
     for i in range(len(protein_name_list)):
         if len(coordinate_list[i] <= 400):
@@ -315,8 +377,49 @@ for j in range(5):
             with open("pdb_files/" + protein_name_list[i] + "_sa_masses_"+str(j)+"_.pkl", "wb") as f:
                 pickle.dump(masses, f)
 
+#%%
+# Plot the few results
 
-"""
+files = os.listdir("./pdb_files")
+
+for file in filter(lambda a : a.find("_masses_") != -1, files):
+    print(file)
+    name = file[0:4]
+    with open("./pdb_files/" + file, "rb") as f:
+        masses = pickle.load(f)
+    network = make_network_from_distance_matrix(
+        distance_matrix_CA_list[protein_name_list.index(name)], 20.)
+    plot_protein_network(network,
+                         distance_matrix_CA_list[protein_name_list.index(name)],
+                         4.0,
+                         coordinate_list[protein_name_list.index(name)],
+                         spectral_basic=True,
+                         title="",
+                         savepath=name + "_before.jpg",
+                         showfig=False,
+                         view_thet=30,
+                         view_phi=30)
+    network = make_network_from_distance_matrix(
+        distance_matrix_CA_list[protein_name_list.index(name)], 20.)
+    network = nt.modify_edges_weitghts(network, masses)
+    coords_modified = nt.get_spectral_coordinates(
+        nx.laplacian_matrix(network).todense(),
+        mod_matrix=np.diag([1. / a[1] for a in list(nx.degree(network))]),
+        dim=3
+    )
+    plot_protein_network(network.copy(),
+                        distance_matrix_CA_list[protein_name_list.index(name)],
+                        5.0,
+                        coordinate_list[protein_name_list.index(name)],
+                        coords_modified=coords_modified,
+                        spectral_basic=False,
+                        title="",
+                        savepath=name + "_after.jpg",
+                        showfig=False,
+                        view_thet=30,
+                        view_phi=30)
+
+
 #%%
 network = make_network_from_distance_matrix(distance_matrix_CA_list[7], 20.)
 
